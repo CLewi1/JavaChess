@@ -351,14 +351,56 @@ public class Board extends JComponent {
                 Active_Piece.setX(Clicked_Column);
                 Active_Piece.setY(Clicked_Row);
 
-                
-                // if piece is a pawn set has_moved to true
+                // check for pawn promotion
                 if (Active_Piece.getClass().equals(Pawn.class))
                 {
-                    Pawn castedPawn = (Pawn)(Active_Piece);
-                    castedPawn.setHasMoved(true);
+                    if (Active_Piece.isWhite() && Active_Piece.getY() == 0)
+                    {
+                        White_Pieces.remove(Active_Piece);
+                        White_Pieces.add(new Queen(Active_Piece.getX(), Active_Piece.getY(), true, "Queen.png", Board.this, false));
+                        Active_Piece = White_Pieces.get(White_Pieces.size()-1);
+                    }
+                    else if (!Active_Piece.isWhite() && Active_Piece.getY() == 7)
+                    {
+                        Black_Pieces.remove(Active_Piece);
+                        Black_Pieces.add(new Queen(Active_Piece.getX(), Active_Piece.getY(), false, "Queen.png", Board.this, false));
+                        Active_Piece = Black_Pieces.get(Black_Pieces.size()-1);
+                    }
                 }
                 
+                // check for castling
+/*
+check active piece is king or rook (good to castle)
+check clicked piece is king or rook (good to castle)
+check if same color (good to castle)
+
+check if either has moved (bad to castle)
+check if pieces are between (bad to castle)
+check if king is in check (bad to castle)
+check if king will move through check (bad to castle)
+check if king will move into check (bad to castle)
+*/
+                if (Active_Piece.getClass().equals(King.class)) {
+                    if (clicked_piece.getClass().equals(Rook.class)) {
+                        
+                    }
+                }
+
+
+                if (Active_Piece.getClass().equals(King.class))
+                {
+                    King king = (King) Active_Piece;
+                    king.setHasMoved(true);
+                }
+                if (Active_Piece.getClass().equals(Rook.class))
+                {
+                    Rook rook = (Rook) Active_Piece;
+                    rook.setHasMoved(true);
+                }
+
+
+
+
                 
                 Active_Piece = null;
                 turnCounter++;
