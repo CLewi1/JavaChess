@@ -44,11 +44,7 @@ public class King extends Piece {
             }
         }
 
-        // check if the king is in danger
-        if(!Board.isKingLegalMove(destination_x, destination_y, this.isWhite()))
-        {
-            return false;
-        }
+        
 
         return true;
     }

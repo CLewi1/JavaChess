@@ -196,27 +196,32 @@ public class Board extends JComponent {
                 {
                     if (clicked_piece.isWhite())
                     {
+                        White_Pieces.remove(clicked_piece);
                         if (clicked_piece.getClass().equals(King.class))
                         {
-                            // popup window with java swing saying white wins
-                            JOptionPane.showMessageDialog(null, "Black wins!");
+                            Active_Piece.setX(Clicked_Column); // let piece take the king's spot
+                            Active_Piece.setY(Clicked_Row);
+                            drawBoard();
+                            JOptionPane.showMessageDialog(null, "Black wins!"); // tell user black wins
                             System.exit(0);
                         }
-                        White_Pieces.remove(clicked_piece);
 
                     }
                     else
                     {
+                        Black_Pieces.remove(clicked_piece);
                         if (clicked_piece.getClass().equals(King.class))
                         {
-                            JOptionPane.showMessageDialog(null, "White wins!");
+                            Active_Piece.setX(Clicked_Column); // let piece take the king's spot
+                            Active_Piece.setY(Clicked_Row);
+                            drawBoard();
+                            JOptionPane.showMessageDialog(null, "White wins!"); // tell user white wins
                             System.exit(0);
                         }
-                        Black_Pieces.remove(clicked_piece);
                     }
                 }
 
-                // do move if king not in check
+                // do move logic
                 Active_Piece.setX(Clicked_Column);
                 Active_Piece.setY(Clicked_Row);
 
