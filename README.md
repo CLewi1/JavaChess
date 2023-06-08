@@ -1,6 +1,6 @@
 To-Do List:
 
-- fix pawns taking directly in fornt of them
+- fix pawns jumping 2 spaces over a piece
 
 
 
@@ -10,6 +10,8 @@ To-Do List:
 - Castling
 - EnPessant
 - promotion
+
+- maybe save multiple games???
 
 
 
