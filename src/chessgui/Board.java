@@ -96,6 +96,42 @@ public class Board extends JComponent {
         this.setMinimumSize(new Dimension(100, 100));
         this.setMaximumSize(new Dimension(1000, 1000));
 
+        // add save game button
+        JButton saveButton = new JButton("<html><center>"+"Save"+"<br>"+"Game"+"</center></html>");
+        this.add(saveButton);
+        saveButton.setBounds(520, 0, 80, 80);
+        // add events for button 
+        saveButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // save game
+                try {
+                    saveGame(turnCounter);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
+
+        // add load game button
+        JButton loadButton = new JButton();
+        loadButton.setText("<html><center>"+"Load"+"<br>"+"Game"+"</center></html>");
+        this.add(loadButton);
+        loadButton.setBounds(520, 80, 80, 80);
+        // add events for button
+        loadButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // load game
+                try {
+                    loadGame();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
+
+
+
+        // add mouse listener for mouse clicks
         this.addMouseListener(mouseAdapter);
         this.addComponentListener(componentAdapter);
         this.addKeyListener(keyAdapter);
@@ -104,6 +140,96 @@ public class Board extends JComponent {
         
         this.setVisible(true);
         this.requestFocus();
+        drawBoard();
+    }
+
+    private void saveGame(int turnCounter) throws IOException {
+        // save game
+        String fileName = "save.txt";
+        FileWriter fileWriter = new FileWriter(fileName);
+        BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+
+        // save turn
+        bufferedWriter.write("9 " + turnCounter + " " + "null" + " " + "null");
+        bufferedWriter.newLine();
+
+        // loop through all pieces and save their positions
+        for (int i = 0; i < White_Pieces.size(); i++) {
+            bufferedWriter.write(White_Pieces.get(i).getX() + " " + White_Pieces.get(i).getY() + " White " + White_Pieces.get(i).getFilePath());
+            bufferedWriter.newLine();
+        }
+        for (int i = 0; i < Black_Pieces.size(); i++) {
+            bufferedWriter.write(Black_Pieces.get(i).getX() + " " + Black_Pieces.get(i).getY() + " Black " + Black_Pieces.get(i).getFilePath());
+            bufferedWriter.newLine();
+        }
+        bufferedWriter.close();        
+        
+        JOptionPane.showMessageDialog(null, "Game Saved!");
+    }
+
+    private void loadGame() throws IOException {
+        // load game
+        String fileName = "save.txt";
+        FileReader fileReader = new FileReader(fileName);
+        BufferedReader bufferedReader = new BufferedReader(fileReader);
+        String line = null;
+
+        // clear all pieces
+        White_Pieces.clear();
+        Black_Pieces.clear();
+
+        // loop through all lines and add pieces
+        while ((line = bufferedReader.readLine()) != null) {
+            String[] parts = line.split(" ");
+            int x = Integer.parseInt(parts[0]);
+            int y = Integer.parseInt(parts[1]);
+            boolean isWhite = parts[2].equals("White");
+            String filePath = parts[3];
+            if (x == 9) {
+                turnCounter = y;
+                continue;
+            }
+            if (filePath.equals("King.png")) {
+                if (isWhite) {
+                    White_Pieces.add(new King(x, y, isWhite, filePath, this, false));
+                } else {
+                    Black_Pieces.add(new King(x, y, isWhite, filePath, this, false));
+                }
+            } else if (filePath.equals("Queen.png")) {
+                if (isWhite) {
+                    White_Pieces.add(new Queen(x, y, isWhite, filePath, this, false));
+                } else {
+                    Black_Pieces.add(new Queen(x, y, isWhite, filePath, this, false));
+                }
+            } else if (filePath.equals("Bishop.png")) {
+                if (isWhite) {
+                    White_Pieces.add(new Bishop(x, y, isWhite, filePath, this, false));
+                } else {
+                    Black_Pieces.add(new Bishop(x, y, isWhite, filePath, this, false));
+                }
+            } else if (filePath.equals("Knight.png")) {
+                if (isWhite) {
+                    White_Pieces.add(new Knight(x, y, isWhite, filePath, this, false));
+                } else {
+                    Black_Pieces.add(new Knight(x, y, isWhite, filePath, this, false));
+                }
+            } else if (filePath.equals("Rook.png")) {
+                if (isWhite) {
+                    White_Pieces.add(new Rook(x, y, isWhite, filePath, this, false));
+                } else {
+                    Black_Pieces.add(new Rook(x, y, isWhite, filePath, this, false));
+                }
+            } else if (filePath.equals("Pawn.png")) {
+                if (isWhite) {
+                    White_Pieces.add(new Pawn(x, y, isWhite, filePath, this, false));
+                } else {
+                    Black_Pieces.add(new Pawn(x, y, isWhite, filePath, this, false));
+                }
+            }
+        }
+        bufferedReader.close();
+
+        // save changes by drawing the board
         drawBoard();
     }
 
