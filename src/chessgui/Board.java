@@ -304,14 +304,14 @@ public class Board extends JComponent {
             {
                 is_whites_turn = false;
             }
+
             
             Piece clicked_piece = getPiece(Clicked_Column, Clicked_Row);
-
-
-
+            
+            
             // logic for moving pieces
             if (Active_Piece == null && clicked_piece != null && 
-                    ((is_whites_turn && clicked_piece.isWhite()) || (!is_whites_turn && clicked_piece.isBlack())))
+            ((is_whites_turn && clicked_piece.isWhite()) || (!is_whites_turn && clicked_piece.isBlack())))
             {
                 Active_Piece = clicked_piece;
             }
@@ -320,7 +320,7 @@ public class Board extends JComponent {
                 Active_Piece = null;
             }
             else if (Active_Piece != null && Active_Piece.canMove(Clicked_Column, Clicked_Row) 
-                    && ((is_whites_turn && Active_Piece.isWhite()) || (!is_whites_turn && Active_Piece.isBlack())))
+            && ((is_whites_turn && Active_Piece.isWhite()) || (!is_whites_turn && Active_Piece.isBlack())))
             {
                 // if piece is there, remove it so we can be there
                 if (clicked_piece != null)
@@ -336,7 +336,7 @@ public class Board extends JComponent {
                             JOptionPane.showMessageDialog(null, "Black wins!"); // tell user black wins
                             System.exit(0);
                         }
-
+                        
                     }
                     else
                     {
@@ -351,10 +351,33 @@ public class Board extends JComponent {
                         }
                     }
                 }
-
+                
+                // save previous position
+                int prevX = Active_Piece.getX();
+                int prevY = Active_Piece.getY();
+                if (clicked_piece != null)
+                {
+                    prevX = clicked_piece.getX();
+                    prevY = clicked_piece.getY();
+                }
+                
                 // do move logic
                 Active_Piece.setX(Clicked_Column);
                 Active_Piece.setY(Clicked_Row);
+                
+                // if king is still in check move back
+                if (Active_Piece.getClass().equals(King.class))
+                {
+                    King piece = (King) Active_Piece;
+                    if (King.isKingInCheck(piece.isWhite(), piece.getX(), piece.getY()))
+                    {
+                        Active_Piece.setX(prevX);
+                        Active_Piece.setY(prevY);
+                        Active_Piece = null;
+                        return;
+                    }
+                }
+
 
                 // check for pawn promotion
                 if (Active_Piece.getClass().equals(Pawn.class))
