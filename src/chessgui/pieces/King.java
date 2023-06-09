@@ -55,10 +55,38 @@ public class King extends Piece {
             }
         }
 
-        
+        // Check if the king is in check
+/*      if(isKingInCheck(this.isWhite(), destination_x, destination_y))
+        {
+            return false;
+        } */
+    
+    
+        // Check if the king is moving to a square that is being attacked by an opponent
+        if(isKingInCheck(this.isWhite(), this.getX(), this.getY(), destination_x, destination_y))
+        {
+            return false;
+        }
 
+        // If all the above checks are passed, the king can move to the destination
         return true;
     }
 
-    
+        public static boolean isKingInCheck(boolean isWhiteKing, int king_x, int king_y, int destination_x, int destination_y) {
+        // Iterate over all the pieces on the board
+        for(int x = 0; x < 8; x++) {
+            for(int y = 0; y < 8; y++) {
+                Piece piece = Board.getPiece(x, y);
+                if(piece != null && piece.isWhite() != isWhiteKing) {
+                    // Check if the piece can attack the king
+                    if(piece.canMove(destination_x, destination_y)) {
+                        return true;
+                    }
+
+                }
+                        
+            }
+        }
+        return false;
+    }
 }

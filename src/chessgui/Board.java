@@ -291,6 +291,8 @@ public class Board extends JComponent {
                 
         }
 
+
+
         @Override
         public void mousePressed(MouseEvent e) {
             int d_X = e.getX();
@@ -304,7 +306,10 @@ public class Board extends JComponent {
             }
             
             Piece clicked_piece = getPiece(Clicked_Column, Clicked_Row);
-            
+
+
+
+            // logic for moving pieces
             if (Active_Piece == null && clicked_piece != null && 
                     ((is_whites_turn && clicked_piece.isWhite()) || (!is_whites_turn && clicked_piece.isBlack())))
             {
@@ -380,27 +385,6 @@ check if king is in check (bad to castle)
 check if king will move through check (bad to castle)
 check if king will move into check (bad to castle)
 */
-                if (Active_Piece.getClass().equals(King.class)) {
-                    if (clicked_piece.getClass().equals(Rook.class)) {
-                        
-                    }
-                }
-
-
-                if (Active_Piece.getClass().equals(King.class))
-                {
-                    King king = (King) Active_Piece;
-                    king.setHasMoved(true);
-                }
-                if (Active_Piece.getClass().equals(Rook.class))
-                {
-                    Rook rook = (Rook) Active_Piece;
-                    rook.setHasMoved(true);
-                }
-
-
-
-
                 
                 Active_Piece = null;
                 turnCounter++;
