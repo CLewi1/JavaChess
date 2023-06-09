@@ -1,5 +1,7 @@
 package chessgui.pieces;
 
+import java.util.ArrayList;
+
 import chessgui.Board;
 
 public class Queen extends Piece {
@@ -60,7 +62,70 @@ public class Queen extends Piece {
                 return false;
             }
         }
-        
+
+        // check if king is in check
+        for (int i = 0; i < 8; i++)
+        {   for (int j = 0; j < 8; j++) {
+                if (Board.getPiece(i, j) != null) {
+                    if (Board.getPiece(i, j).isWhite() == this.isWhite()) {
+                        if (Board.getPiece(i, j) instanceof King) {
+                            King king = (King) Board.getPiece(i, j);
+                            if (King.isKingInCheck(this.isWhite(), i, j)) {
+
+                                // if the queen cannot take the piece that is checking the king, return false
+                                Piece attacking = null;
+                                for (int l = 0; l < 8; l++) {
+                                    for (int m = 0; m < 8; m++) {
+                                        if (Board.getPiece(l, m) != null) {
+                                            if (Board.getPiece(l, m).isWhite() != this.isWhite()) {
+                                                if (Board.getPiece(l, m).canMove(i, j)) {
+                                                    attacking = Board.getPiece(l, m);
+                                                }
+                                            } 
+                                        }
+                                    }
+                                }
+
+                                // loop through all squares and put attacked squares in an array
+                                ArrayList<Integer> attacked_squareX = new ArrayList<Integer>();
+                                ArrayList<Integer> attacked_squareY = new ArrayList<Integer>();
+                                for (int l = 0; l < 8; l++) {
+                                    for (int m = 0; m < 8; m++) {
+                                        if (Board.getPiece(l, m) != null) {
+                                            if (Board.getPiece(l, m).isWhite() != this.isWhite()) {
+                                                for (int n = 0; n < 8; n++) {
+                                                    for (int o = 0; o < 8; o++) {
+                                                        if (attacking.canMove(n, o)) {
+                                                            attacked_squareX.add(n);
+                                                            attacked_squareY.add(o);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (attacked_squareX.size() > 0) {
+                                    for (int l = 0; l < attacked_squareX.size(); l++) {
+                                        if (attacked_squareX.get(l) == destination_x && attacked_squareY.get(l) == destination_y) {
+                                            return true; //can move if queen can move in front of king
+                                        }
+                                    } 
+                                }
+                                if (destination_x == attacking.getX() && destination_y == attacking.getY()) {
+                                    return true; //can move if queen can take the piece that is checking the king
+
+
+                                }
+
+                                return false; // temp so can't move if king is in check
+                            }
+                        }
+                    }
+                }
+            }
+        }
         return true;
     }
 }

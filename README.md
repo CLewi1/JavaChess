@@ -2,8 +2,10 @@ To-Do List:
 
 ====================
 - check
-(king can't move into it)
+
 (other pieces can't move unless taking or blocking)
+
+almost fixed, if moves to space piece can attack, able to move, only move to spaces between king and piece
 
 ====================
 
