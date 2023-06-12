@@ -1,5 +1,9 @@
 package chessgui.pieces;
 
+import java.util.List;
+import java.util.ArrayList;
+import java.awt.Point;
+
 import chessgui.Board;
 
 public class Knight extends Piece {
@@ -9,9 +13,11 @@ public class Knight extends Piece {
         super(x,y,is_white,file_path, board, is_captured);
     }
 
-    // Recursive helper function to check if a knight can move to the given destination
-    private boolean canMoveHelper(int destination_x, int destination_y, int remaining_moves) {
-        // Get the current position of the knight
+    
+    @Override
+    public boolean canMove(int destination_x, int destination_y)
+    {
+         // Get the current position of the knight
         int x = this.getX();
         int y = this.getY();
         
@@ -43,31 +49,60 @@ public class Knight extends Piece {
             }
         }
 
-        // Check if this is the last move we need to check
-        if (remaining_moves == 1) {
-            return true;
-        }
+        // check if king is in check
+        for (int i = 0; i < 8; i++)
+        {   for (int j = 0; j < 8; j++) {
+                if (Board.getPiece(i, j) != null) {
+                    if (Board.getPiece(i, j).isWhite() == this.isWhite()) {
+                        if (Board.getPiece(i, j) instanceof King) {
+                            King king = (King) Board.getPiece(i, j);
+                            if (King.isKingInCheck(this.isWhite(), i, j)) {
 
-        // Try moving to all possible positions recursively
-        for (int i = -2; i <= 2; i++) {
-            for (int j = -2; j <= 2; j++) {
-                if (Math.abs(i) + Math.abs(j) == 3) {
-                    int next_x = x + i;
-                    int next_y = y + j;
-                    if (canMoveHelper(next_x, next_y, remaining_moves - 1)) {
-                        return true;
+                                // if cannot take the piece that is checking the king, return false
+                                Piece attacking = null;
+                                for (int l = 0; l < 8; l++) {
+                                    for (int m = 0; m < 8; m++) {
+                                        if (Board.getPiece(l, m) != null) {
+                                            if (Board.getPiece(l, m).isWhite() != this.isWhite()) {
+                                                if (Board.getPiece(l, m).canMove(i, j)) {
+                                                    attacking = Board.getPiece(l, m);
+                                                }
+                                            } 
+                                        }
+                                    }
+                                }
+
+                                // create grid of points
+                                Point[][] grid = new Point[8][8]; 
+                                for (int p = 0; p < 8; p++) {
+                                    for (int q = 0; q < 8; q++) {
+                                        grid[p][q] = new Point(p, q);
+                                    }
+                                }
+
+                                // find line between king and attacking piece
+                                List<Point> line = Bresenham.findLine(grid, i, j, attacking.getX(), attacking.getY());
+
+                                // check if queen can move to any of the squares in the line
+                                if (line.contains(new Point(destination_x, destination_y))) {
+                                    return true;
+                                }
+
+                                // check if queen can take the attacking piece
+                                if (destination_x == attacking.getX() && destination_y == attacking.getY()) {
+                                    return true; 
+
+
+                                }
+
+                                return false; // can't move if king is in check and none of the other conditions are met
+                            }
+                        }
                     }
                 }
             }
         }
-        
-        return false;
-    }
 
-    @Override
-    public boolean canMove(int destination_x, int destination_y)
-    {
-        // Try moving to the destination in 3 or fewer moves recursively
-        return canMoveHelper(destination_x, destination_y, 3);
+        return true;
     }
 }
