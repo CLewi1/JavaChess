@@ -1,7 +1,5 @@
 package chessgui.pieces;
 
-import java.util.ArrayList;
-import java.util.ArrayList;
 import java.util.List;
 import java.awt.Point;
 
@@ -72,7 +70,6 @@ public class Queen extends Piece {
                 if (Board.getPiece(i, j) != null) {
                     if (Board.getPiece(i, j).isWhite() == this.isWhite()) {
                         if (Board.getPiece(i, j) instanceof King) {
-                            King king = (King) Board.getPiece(i, j);
                             if (King.isKingInCheck(this.isWhite(), i, j)) {
 
                                 // if cannot take the piece that is checking the king, return false
@@ -112,7 +109,7 @@ public class Queen extends Piece {
 
                                 }
 
-                                return false; // can't move if king is in check and none of the other ocnditions are met
+                                return false; // can't move if king is in check and none of the other conditions are met
                             }
                         }
                     }

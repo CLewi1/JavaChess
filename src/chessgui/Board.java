@@ -84,10 +84,10 @@ public class Board extends JComponent {
     public Board() {
 
         BoardGrid = new Integer[rows][cols];
-        Static_Shapes = new ArrayList();
-        Piece_Graphics = new ArrayList();
-        White_Pieces = new ArrayList();
-        Black_Pieces = new ArrayList();
+        Static_Shapes = new ArrayList<DrawingShape>();
+        Piece_Graphics = new ArrayList<DrawingShape>();
+        White_Pieces = new ArrayList<Piece>();
+        Black_Pieces = new ArrayList<Piece>();
 
         initGrid();
 
@@ -432,15 +432,6 @@ check if king will move into check (bad to castle)
         
     };
 
-    private void adjustShapePositions(double dx, double dy) {
-
-        Static_Shapes.get(0).adjustPosition(dx, dy);
-        this.repaint();
-
-    } 
-        
-        
-      
     private Image loadImage(String imageFile) {
         try {
                 return ImageIO.read(new File(imageFile));
@@ -518,7 +509,7 @@ check if king will move into check (bad to castle)
 
     // return all pieces
     public static ArrayList<Piece> getPieces() {
-        ArrayList<Piece> all_pieces = new ArrayList();
+        ArrayList<Piece> all_pieces = new ArrayList<Piece>();
         all_pieces.addAll(White_Pieces);
         all_pieces.addAll(Black_Pieces);
         return all_pieces;

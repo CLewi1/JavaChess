@@ -17,7 +17,7 @@ public class Piece {
         this.y = y;
         this.file_path = file_path;
         this.board = board;
-        this.is_captured = is_captured;
+        Piece.is_captured = is_captured;
     }
     
     public String getFilePath()

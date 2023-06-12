@@ -1,5 +1,8 @@
 package chessgui.pieces;
 
+import java.util.List;
+import java.awt.Point;
+
 import chessgui.Board;
 
 public class Rook extends Piece {
@@ -72,6 +75,59 @@ public class Rook extends Piece {
             return false;
         }
     }
+
+            // check if king is in check
+        for (int i = 0; i < 8; i++)
+        {   for (int j = 0; j < 8; j++) {
+                if (Board.getPiece(i, j) != null) {
+                    if (Board.getPiece(i, j).isWhite() == this.isWhite()) {
+                        if (Board.getPiece(i, j) instanceof King) {
+                            if (King.isKingInCheck(this.isWhite(), i, j)) {
+
+                                // if cannot take the piece that is checking the king, return false
+                                Piece attacking = null;
+                                for (int l = 0; l < 8; l++) {
+                                    for (int m = 0; m < 8; m++) {
+                                        if (Board.getPiece(l, m) != null) {
+                                            if (Board.getPiece(l, m).isWhite() != this.isWhite()) {
+                                                if (Board.getPiece(l, m).canMove(i, j)) {
+                                                    attacking = Board.getPiece(l, m);
+                                                }
+                                            } 
+                                        }
+                                    }
+                                }
+
+                                // create grid of points
+                                Point[][] grid = new Point[8][8]; 
+                                for (int p = 0; p < 8; p++) {
+                                    for (int q = 0; q < 8; q++) {
+                                        grid[p][q] = new Point(p, q);
+                                    }
+                                }
+
+                                // find line between king and attacking piece
+                                List<Point> line = Bresenham.findLine(grid, i, j, attacking.getX(), attacking.getY());
+
+                                // check if queen can move to any of the squares in the line
+                                if (line.contains(new Point(destination_x, destination_y))) {
+                                    return true;
+                                }
+
+                                // check if queen can take the attacking piece
+                                if (destination_x == attacking.getX() && destination_y == attacking.getY()) {
+                                    return true; 
+
+
+                                }
+
+                                return false; // can't move if king is in check and none of the other conditions are met
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         return true;
     }

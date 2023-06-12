@@ -1,7 +1,7 @@
 package chessgui.pieces;
 
 import java.util.List;
-import java.util.ArrayList;
+
 import java.awt.Point;
 
 import chessgui.Board;
@@ -13,7 +13,7 @@ public class Knight extends Piece {
         super(x,y,is_white,file_path, board, is_captured);
     }
 
-    
+
     @Override
     public boolean canMove(int destination_x, int destination_y)
     {
@@ -55,7 +55,6 @@ public class Knight extends Piece {
                 if (Board.getPiece(i, j) != null) {
                     if (Board.getPiece(i, j).isWhite() == this.isWhite()) {
                         if (Board.getPiece(i, j) instanceof King) {
-                            King king = (King) Board.getPiece(i, j);
                             if (King.isKingInCheck(this.isWhite(), i, j)) {
 
                                 // if cannot take the piece that is checking the king, return false
