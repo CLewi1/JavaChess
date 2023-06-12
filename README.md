@@ -1,18 +1,26 @@
-# To-Do List:
-
 ====================
+# working on:
 - checkmate
 
+
+
+
 ====================
+# To Do:
 
 - EnPessant
 - Castling
 
 - check for draw
 
+===================
 
-- maybe take back move?
-- maybe save multiple games???
+
+- take back move?
+- resign button?
+- save multiple games???
+- timer?
+
 
 
 
