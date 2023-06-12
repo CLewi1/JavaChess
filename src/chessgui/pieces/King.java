@@ -54,13 +54,6 @@ public class King extends Piece {
                 return false;
             }
         }
-
-        // Check if the king is in check
-/*      if(isKingInCheck(this.isWhite(), destination_x, destination_y))
-        {
-            return false;
-        } */
-    
     
         // Check if the king is moving to a square that is being attacked by an opponent
         if(isKingInCheck(this.isWhite(), destination_x, destination_y))

@@ -119,11 +119,11 @@ public class Pawn extends Piece {
                                 List<Point> line = Bresenham.findLine(grid, i, j, attacking.getX(), attacking.getY());
 
                                 // check if queen can move to any of the squares in the line
-                                if (line.contains(new Point(destination_x, destination_y))) {
+                                if (line.contains(new Point(destination_x, destination_y)) || (line.contains(new Point(destination_x, destination_y))) && first_move) {
                                     return true;
                                 }
 
-                                // check if queen can take the attacking piece
+                                // check if can take the attacking piece
                                 if (destination_x == attacking.getX() && destination_y == attacking.getY()) {
                                     return true; 
 

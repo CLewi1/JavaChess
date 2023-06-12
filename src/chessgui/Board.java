@@ -515,49 +515,30 @@ check if king will move into check (bad to castle)
         return all_pieces;
     }
 
-    public static boolean isKingInCheck(int king_x, int king_y, boolean white) {
-        // check if each piece can move to the king's position
-        for (Piece p : White_Pieces)
+    // find kings
+    public static King getKing(boolean isWhite) {
+        if (isWhite)
         {
-            if (p.isWhite() != white && p.canMove(king_x, king_y))
+            for (Piece piece : White_Pieces)
             {
-                System.out.println("King in check");
-                return true;
+                if (piece.getClass().equals(King.class))
+                {
+                    return (King) piece;
+                }
             }
         }
-        for (Piece p : Black_Pieces)
+        else
         {
-            if (p.isWhite() != white && p.canMove(king_x, king_y))
+            for (Piece piece : Black_Pieces)
             {
-                System.out.println("King in check");
-                return true;
+                if (piece.getClass().equals(King.class))
+                {
+                    return (King) piece;
+                }
             }
         }
-
-        //temp
-        return false;
+        return null;
     }
-
-    public static boolean isKingLegalMove(int destination_x, int destination_y, boolean white) {
-        // check if each piece can move to the king's destination
-        for (Piece p : White_Pieces)
-        {
-            if (p.isWhite() != white && p.canMove(destination_x, destination_y))
-            {
-                return false;
-            }
-        }
-        for (Piece p : Black_Pieces)
-        {
-            if (p.isWhite() != white && p.canMove(destination_x, destination_y))
-            {
-                return false;
-            }
-        }
-        //temp
-        return true;
-    }
- 
 
 
 
