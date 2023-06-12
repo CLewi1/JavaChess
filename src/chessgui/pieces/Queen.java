@@ -1,6 +1,9 @@
 package chessgui.pieces;
 
 import java.util.ArrayList;
+import java.util.ArrayList;
+import java.util.List;
+import java.awt.Point;
 
 import chessgui.Board;
 
@@ -72,7 +75,7 @@ public class Queen extends Piece {
                             King king = (King) Board.getPiece(i, j);
                             if (King.isKingInCheck(this.isWhite(), i, j)) {
 
-                                // if the queen cannot take the piece that is checking the king, return false
+                                // if cannot take the piece that is checking the king, return false
                                 Piece attacking = null;
                                 for (int l = 0; l < 8; l++) {
                                     for (int m = 0; m < 8; m++) {
@@ -86,40 +89,30 @@ public class Queen extends Piece {
                                     }
                                 }
 
-                                // loop through all squares and put attacked squares in an array
-                                ArrayList<Integer> attacked_squareX = new ArrayList<Integer>();
-                                ArrayList<Integer> attacked_squareY = new ArrayList<Integer>();
-                                for (int l = 0; l < 8; l++) {
-                                    for (int m = 0; m < 8; m++) {
-                                        if (Board.getPiece(l, m) != null) {
-                                            if (Board.getPiece(l, m).isWhite() != this.isWhite()) {
-                                                for (int n = 0; n < 8; n++) {
-                                                    for (int o = 0; o < 8; o++) {
-                                                        if (attacking.canMove(n, o)) {
-                                                            attacked_squareX.add(n);
-                                                            attacked_squareY.add(o);
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
+                                // create grid of points
+                                Point[][] grid = new Point[8][8]; 
+                                for (int p = 0; p < 8; p++) {
+                                    for (int q = 0; q < 8; q++) {
+                                        grid[p][q] = new Point(p, q);
                                     }
                                 }
 
-                                if (attacked_squareX.size() > 0) {
-                                    for (int l = 0; l < attacked_squareX.size(); l++) {
-                                        if (attacked_squareX.get(l) == destination_x && attacked_squareY.get(l) == destination_y) {
-                                            return true; //can move if queen can move in front of king
-                                        }
-                                    } 
+                                // find line between king and attacking piece
+                                List<Point> line = Bresenham.findLine(grid, i, j, attacking.getX(), attacking.getY());
+
+                                // check if queen can move to any of the squares in the line
+                                if (line.contains(new Point(destination_x, destination_y))) {
+                                    return true;
                                 }
+
+                                // check if queen can take the attacking piece
                                 if (destination_x == attacking.getX() && destination_y == attacking.getY()) {
-                                    return true; //can move if queen can take the piece that is checking the king
+                                    return true; 
 
 
                                 }
 
-                                return false; // temp so can't move if king is in check
+                                return false; // can't move if king is in check and none of the other ocnditions are met
                             }
                         }
                     }
