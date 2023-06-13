@@ -67,19 +67,94 @@ public class King extends Piece {
 
         public static boolean isKingInCheck(boolean isWhiteKing, int destination_x, int destination_y) {
         // Iterate over all the pieces on the board
-        for(int x = 0; x < 8; x++) {
-            for(int y = 0; y < 8; y++) {
-                Piece piece = Board.getPiece(x, y);
-                if(piece != null && piece.isWhite() != isWhiteKing) {
-                    // Check if the piece can attack the king
-                    if(piece.canMove(destination_x, destination_y)) {
-                        return true;
-                    }
+            for(int x = 0; x < 8; x++) {
+                for(int y = 0; y < 8; y++) {
+                    Piece piece = Board.getPiece(x, y);
+                    if(piece != null && piece.isWhite() != isWhiteKing) {
+                        // Check if the piece can attack the king
+                        if(piece.canMove(destination_x, destination_y)) {
+                            System.out.println("King in check");
+                            return true;
+                        }
 
+                    } 
+                            
                 }
-                        
             }
+            return false;
         }
-        return false;
+
+        // is king in checkmate
+        public boolean checkmate(boolean isWhiteKing) {
+           // verify if king in check
+            if (isWhiteKing) {
+                for (Piece king : Board.White_Pieces) {
+                    if (king instanceof King) {
+                        for (Piece attackingPiece : Board.Black_Pieces) {
+                            if (attackingPiece.canMove(king.getX(), king.getY())) {
+                                // king is in check
+                                for (int x = 0; x < 8; x++) {
+                                    for (int y = 0; y < 8; y++) {
+                                        if (king.canMove(x, y)) {
+                                            // king can move to a safe square
+                                            return false;
+                                        }
+                                        else {
+                                            // king cannot move to a safe square
+                                            // check if a piece can block the attack
+                                            for (Piece defPiece : Board.White_Pieces) {
+                                                if (defPiece.canBlock()) {
+                                                    // piece can stop the attack
+                                                    return false;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                
+
+
+
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                for (Piece king : Board.Black_Pieces) {
+                    if (king instanceof King) {
+                        for (Piece attackingPiece : Board.White_Pieces) {
+                            if (attackingPiece.canMove(king.getX(), king.getY())) {
+                                // king is in check
+                                for (int x = 0; x < 8; x++) {
+                                    for (int y = 0; y < 8; y++) {
+                                        if (king.canMove(x, y)) {
+                                            // king can move to a safe square
+                                            return false;
+                                        }
+                                        else {
+                                            // king cannot move to a safe square
+                                            // check if a piece can block the attack
+                                            for (Piece defPiece : Board.Black_Pieces) {
+                                                if (defPiece.canBlock()) {
+                                                    // piece can stop the attack
+                                                    return false;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                
+
+
+
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
     }
 }

@@ -2,6 +2,10 @@
 # working on:
 - checkmate
 
+- King in check
+- no piece can move to block check
+- no piece can take attacking piece
+- king cannot move anywhere else
 
 
 
@@ -12,6 +16,8 @@
 - Castling
 
 - check for draw
+
+- refactor code
 
 ===================
 

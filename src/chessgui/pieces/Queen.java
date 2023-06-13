@@ -65,8 +65,8 @@ public class Queen extends Piece {
         }
 
         // check if king is in check
-        for (int i = 0; i < 8; i++)
-        {   for (int j = 0; j < 8; j++) {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
                 if (Board.getPiece(i, j) != null) {
                     if (Board.getPiece(i, j).isWhite() == this.isWhite()) {
                         if (Board.getPiece(i, j) instanceof King) {
@@ -81,13 +81,13 @@ public class Queen extends Piece {
                                                 if (Board.getPiece(l, m).canMove(i, j)) {
                                                     attacking = Board.getPiece(l, m);
                                                 }
-                                            } 
+                                            }
                                         }
                                     }
                                 }
 
                                 // create grid of points
-                                Point[][] grid = new Point[8][8]; 
+                                Point[][] grid = new Point[8][8];
                                 for (int p = 0; p < 8; p++) {
                                     for (int q = 0; q < 8; q++) {
                                         grid[p][q] = new Point(p, q);
@@ -104,8 +104,7 @@ public class Queen extends Piece {
 
                                 // check if queen can take the attacking piece
                                 if (destination_x == attacking.getX() && destination_y == attacking.getY()) {
-                                    return true; 
-
+                                    return true;
 
                                 }
 
@@ -118,4 +117,6 @@ public class Queen extends Piece {
         }
         return true;
     }
+
+    
 }

@@ -1,5 +1,8 @@
 package chessgui.pieces;
 
+import java.util.List;
+import java.awt.Point;
+
 import chessgui.Board;
 
 public class Piece {
@@ -62,6 +65,20 @@ public class Piece {
     
     public boolean canMove(int destination_x, int destination_y)
     {
+        return false;
+    }
+
+    public boolean canBlock() {
+        // check if piece can block check
+        
+        // find all attacked squares (algoritm)
+
+        // see if piece can move to any of squares, if so return true
+
+        // see if piece can take attacking piece, if so return true
+
+
+
         return false;
     }
 }
