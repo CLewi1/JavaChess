@@ -57,14 +57,9 @@ public class Pawn extends Piece {
         boolean is_diagonal = (destination_x == x + 1 || destination_x == x - 1) && destination_y == y + direction;
         boolean first_move = (destination_x == x && destination_y == y + 2 * direction && !has_moved);
         
-        if (first_move && Board.getPiece(destination_x, destination_y) == null && Board.getPiece(destination_x, destination_y - direction) == null)
-        {
-            // find king position
-            return true;
-        }
         
         // Check if the pawn is attacking
-        else if(is_diagonal)
+        if(is_diagonal)
         {
             // Check if there is a piece of the opposite color at the destination
             if(Board.getPiece(destination_x, destination_y) == null || Board.getPiece(destination_x, destination_y).isWhite() == this.isWhite())
@@ -72,19 +67,13 @@ public class Pawn extends Piece {
                 return false;
             }
         }
-
         // Check if there is a piece in the way
         else if(Board.getPiece(destination_x, destination_y) != null)
         {
             return false;
         }
 
-
-        else if (!is_forward && !is_diagonal)
-        {
-            return false;
-        }
-
+        else {
         // check if king is in check
         for (int i = 0; i < 8; i++)
         {   for (int j = 0; j < 8; j++) {
@@ -136,6 +125,17 @@ public class Pawn extends Piece {
                     }
                 }
             }
+        }
+    }
+
+        if (first_move && Board.getPiece(destination_x, destination_y) == null && Board.getPiece(destination_x, destination_y - direction) == null)
+        {
+            // find king position
+            return true;
+        }
+            else if (!is_forward && !is_diagonal)
+        {
+            return false;
         }
         
         // The move is valid
