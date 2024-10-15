@@ -42,24 +42,27 @@ public class King extends Piece {
             return false;
         }
 
-        // Check if the piece at the destination is an opponent
-        if(Board.getPiece(destination_x, destination_y) != null)
-        {
-            if(Board.getPiece(destination_x, destination_y).isWhite() && this.isWhite())
-            {
-                return false;
-            }
-            if(!Board.getPiece(destination_x, destination_y).isWhite() && !this.isWhite())
-            {
-                return false;
-            }
-        }
-    
-        // Check if the king is moving to a square that is being attacked by an opponent
-        if(isKingInCheck(this.isWhite(), destination_x, destination_y))
+        // Check if the king is moving to a square that is occupied by a piece of the same color
+        if(Board.getPiece(destination_x, destination_y) != null && Board.getPiece(destination_x, destination_y).isWhite() == this.isWhite())
         {
             return false;
         }
+
+        // Check if king is in check 
+        if(isKingInCheck(this.isWhite(), x, y))
+        {
+            // Check if king is moving into check
+            if(isKingInCheck(this.isWhite(), destination_x, destination_y))
+            {
+                return false;
+            }
+
+            // 
+        }
+
+
+
+
 
         // If all the above checks are passed, the king can move to the destination
         return true;
@@ -112,7 +115,6 @@ public class King extends Piece {
                                     }
                                 }
                                 
-
 
 
                                 return true;
