@@ -1,13 +1,26 @@
-/Users/colinlewandowski/Code/Java/javachess/src/main/java/com/clewi/javachess/pieces/Bishop.java
-/Users/colinlewandowski/Code/Java/javachess/src/main/java/com/clewi/javachess/pieces/Piece.java
-/Users/colinlewandowski/Code/Java/javachess/src/main/java/com/clewi/javachess/pieces/Queen.java
-/Users/colinlewandowski/Code/Java/javachess/src/main/java/com/clewi/javachess/pieces/Knight.java
-/Users/colinlewandowski/Code/Java/javachess/src/main/java/com/clewi/javachess/BoardFrame.java
-/Users/colinlewandowski/Code/Java/javachess/src/main/java/com/clewi/javachess/ChessGUI.java
-/Users/colinlewandowski/Code/Java/javachess/src/main/java/com/clewi/javachess/Main.java
-/Users/colinlewandowski/Code/Java/javachess/src/main/java/com/clewi/javachess/pieces/Pawn.java
-/Users/colinlewandowski/Code/Java/javachess/src/main/java/com/clewi/javachess/pieces/Bresenham.java
-/Users/colinlewandowski/Code/Java/javachess/src/main/java/com/clewi/javachess/Board.java
-/Users/colinlewandowski/Code/Java/javachess/src/main/java/com/clewi/javachess/pieces/CapturedPieces.java
-/Users/colinlewandowski/Code/Java/javachess/src/main/java/com/clewi/javachess/pieces/Rook.java
-/Users/colinlewandowski/Code/Java/javachess/src/main/java/com/clewi/javachess/pieces/King.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/ChessGame.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/game/GameManager.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/game/GameStateEvent.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/game/GameStateObserver.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/game/MoveValidator.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/model/Board.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/model/GameSaveData.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/model/GameState.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/model/GameStateEvent.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/model/GameStateObserver.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/model/Move.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/model/MoveType.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/model/Player.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/pieces/Bishop.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/pieces/CapturedPieces.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/pieces/King.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/pieces/Knight.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/pieces/Pawn.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/pieces/Piece.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/pieces/Queen.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/pieces/Rook.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/ui/BoardPanel.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/ui/ChessGUI.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/ui/StatusPanel.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/util/Bresenham.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/util/DebugUtils.java
