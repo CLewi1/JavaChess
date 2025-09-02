@@ -1,14 +1,14 @@
 # JavaChess
 
-A small, local chess application written in Java with a Swing UI.
+### A small, local chess application written in Java with a Swing UI.
 
-Summary
+## Summary
 - Play standard chess against another local player (alternating turns).
 - GUI: `com.clewi.javachess.ui.ChessGUI`
 - Game logic: `com.clewi.javachess.game.GameManager`
 - Rules & validation: `com.clewi.javachess.game.MoveValidator`
 
-Quick start
+## Quick start
 1. Build:
    ```sh
    mvn package
@@ -19,17 +19,17 @@ Quick start
    ```
    Or run `com.clewi.javachess.ChessGame` from your IDE.
 
-How to play
+## How to play
 - Click a piece to select it, then click a destination square to move.
 - Valid moves are enforced by `MoveValidator`.
 - UI indicates check/checkmate and ends the game accordingly.
 
-Saving and loading
+## Saving and loading
 - Use the Save / Load buttons in the status panel.
 - Save format uses Java serialization via `com.clewi.javachess.model.GameSaveData`.
 - Example save data is provided in `save.txt`.
 
-Project structure
+## Project structure
 .
 ├── src
 │   └── main
@@ -58,26 +58,29 @@ Project structure
 ├── save.txt
 └── README.md
 
-Current status & TODO
-- Implemented: basic moves, captures, check/checkmate detection.
+## Current status & TODO
+- Implemented: 
+    - [ ] basic moves
+    - [ ] captures
+    - [ ] check/checkmate
 - Planned:
-  - En passant
-  - Castling
-  - Promotion UI
-  - Multi-save management
-  - Undo / take-back
-  - Timer / clocks
-  - Resign button
-  - Tests & refactor
+    - [ ] En passant
+    - [ ] Castling
+    - [ ] Promotion UI
+    - [ ] Multi-save management
+    - [ ] Undo / take-back
+    - [ ] Timer / clocks
+    - [ ] Resign button
+    - [ ] Tests & refactor
 
-License
+## License
 - No license file present. Add a LICENSE if you intend to open-source.
 
-Contact / Notes
+## Contact / Notes
 - Check console output from `com.clewi.javachess.ChessGame` on startup for run/debug info.
 - Asset images live in `lib/`. If images are missing, `BoardPanel` attempts to load from `lib/white_pieces` and `lib/black_pieces`.
 
-Enjoy developing!
+### Enjoy developing!
 
 
 
