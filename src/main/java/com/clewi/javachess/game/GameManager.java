@@ -247,16 +247,20 @@ public class GameManager {
         this.blackPlayer = new Player(false);
         
         // Add captured pieces
-        saveData.getWhiteCapturedPieces().forEach(p -> {
-            p.setBoard(board);  // Ensure board reference
-            whitePlayer.addCapturedPiece(p);
-        });
-        
-        saveData.getBlackCapturedPieces().forEach(p -> {
-            p.setBoard(board);  // Ensure board reference
-            blackPlayer.addCapturedPiece(p);
-        });
-        
+        if (saveData.getWhiteCapturedPieces() != null) {
+            saveData.getWhiteCapturedPieces().forEach(p -> {
+                p.setBoard(board);  // Ensure board reference
+                whitePlayer.addCapturedPiece(p);
+            });
+        }
+
+        if (saveData.getBlackCapturedPieces() != null) {
+            saveData.getBlackCapturedPieces().forEach(p -> {
+                p.setBoard(board);  // Ensure board reference
+                blackPlayer.addCapturedPiece(p);
+            });
+        }
+
         // Restore current player based on turn
         this.currentPlayer = saveData.isWhiteTurn() ? whitePlayer : blackPlayer;
         
