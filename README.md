@@ -30,33 +30,38 @@
 - Example save data is provided in `save.txt`.
 
 ## Project structure
-.
-├── src
-│   └── main
-│       └── java
-│           └── com.clewi.javachess
-│               ├── ChessGame.java
-│               ├── ui
-│               │   ├── ChessGUI.java
-│               │   └── BoardPanel.java
-│               ├── game
-│               │   ├── GameManager.java
-│               │   └── MoveValidator.java
-│               ├── model
-│               │   ├── Board.java
-│               │   └── GameSaveData.java
-│               └── pieces
-│                   ├── Piece.java
-│                   ├── King.java
-│                   ├── Queen.java
-│                   ├── Rook.java
-│                   ├── Bishop.java
-│                   ├── Knight.java
-│                   └── Pawn.java
-├── lib
+
+```
+javachess/
+├── README.md
 ├── pom.xml
 ├── save.txt
-└── README.md
+├── lib/
+└── src/
+    └── main/
+        └── java/
+            └── com/
+                └── clewi/
+                    └── javachess/
+                        ├── ChessGame.java
+                        ├── ui/
+                        │   ├── ChessGUI.java
+                        │   └── BoardPanel.java
+                        ├── game/
+                        │   ├── GameManager.java
+                        │   └── MoveValidator.java
+                        ├── model/
+                        │   ├── Board.java
+                        │   └── GameSaveData.java
+                        └── pieces/
+                            ├── Piece.java
+                            ├── King.java
+                            ├── Queen.java
+                            ├── Rook.java
+                            ├── Bishop.java
+                            ├── Knight.java
+                            └── Pawn.java
+```
 
 ## Current status & TODO
 - Implemented: 
@@ -64,14 +69,16 @@
     - [ ] captures
     - [ ] check/checkmate
 - Planned:
+    - [ ] Tests
     - [ ] En passant
     - [ ] Castling
     - [ ] Promotion UI
     - [ ] Multi-save management
     - [ ] Undo / take-back
     - [ ] Timer / clocks
-    - [ ] Resign button
-    - [ ] Tests & refactor
+    - [ ] Redesign button
+    - [ ] AI Opponent
+
 
 ## License
 - No license file present. Add a LICENSE if you intend to open-source.
@@ -81,7 +88,3 @@
 - Asset images live in `lib/`. If images are missing, `BoardPanel` attempts to load from `lib/white_pieces` and `lib/black_pieces`.
 
 ### Enjoy developing!
-
-
-
-
