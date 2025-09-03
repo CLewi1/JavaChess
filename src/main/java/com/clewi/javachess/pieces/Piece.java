@@ -1,84 +1,115 @@
 package com.clewi.javachess.pieces;
 
-import java.util.List;
 import java.awt.Point;
+import com.clewi.javachess.model.Board;
+import java.io.Serializable;
 
-import com.clewi.javachess.Board;
-
-public class Piece {
+public abstract class Piece implements Serializable {
+    private static final long serialVersionUID = 1L;
+    
     private int x;
     private int y;
-    public static boolean is_captured = false;
-    final private boolean is_white;
-    private String file_path;
-    public Board board;
+    private boolean isCaptured = false;
+    final private boolean isWhite;
+    private String filePath;
+    protected transient Board board;
     
-    public Piece(int x, int y, boolean is_white, String file_path, Board board, boolean is_captured)
-    {
-        this.is_white = is_white;
+    public Piece(int x, int y, boolean isWhite, String filePath, Board board, boolean isCaptured) {
+        this.isWhite = isWhite;
         this.x = x;
         this.y = y;
-        this.file_path = file_path;
+        this.filePath = filePath;
         this.board = board;
-        Piece.is_captured = is_captured;
+        this.isCaptured = isCaptured;
     }
     
-    public String getFilePath()
-    {
-        return file_path;
+    public String getFilePath() {
+        return filePath;
     }
     
-    public void setFilePath(String path)
-    {
-        this.file_path = path;
+    public void setFilePath(String path) {
+        this.filePath = path;
     }
     
-    public boolean isWhite()
-    {
-        return is_white;
+    public boolean isWhite() {
+        return isWhite;
     }
     
-    public boolean isBlack()
-    {
-        return !is_white;
+    public boolean isBlack() {
+        return !isWhite;
     }
     
-    public void setX(int x)
-    {
+    public boolean isCaptured() {
+        return isCaptured;
+    }
+    
+    public void setCaptured(boolean captured) {
+        this.isCaptured = captured;
+    }
+    
+    public void setX(int x) {
         this.x = x;
     }
     
-    public void setY(int y)
-    {
+    public void setY(int y) {
         this.y = y;
     }
     
-    public int getX()
-    {
+    public void setPosition(Point position) {
+        this.x = position.x;
+        this.y = position.y;
+    }
+    
+    public int getX() {
         return x;
     }
     
-    public int getY()
-    {
+    public int getY() {
         return y;
     }
     
-    public boolean canMove(int destination_x, int destination_y)
-    {
-        return false;
+    public Point getPosition() {
+        return new Point(x, y);
     }
-
-    public boolean canBlock() {
-        // check if piece can block check
+    
+    public Board getBoard() {
+        return board;
+    }
+    
+    public void setBoard(Board board) {
+        this.board = board;
+    }
+    
+    public abstract boolean canMove(int destX, int destY);
+    
+    protected boolean isWithinBounds(int x, int y) {
+        return x >= 0 && x <= 7 && y >= 0 && y <= 7;
+    }
+    
+    protected boolean isOccupiedBySameColor(int x, int y) {
+        if (board == null) return false;
+        Piece piece = board.getPiece(x, y);
+        return piece != null && piece.isWhite() == this.isWhite();
+    }
+    
+    protected boolean isPathClear(int startX, int startY, int endX, int endY) {
+        if (board == null) return true;
         
-        // find all attacked squares (algoritm)
-
-        // see if piece can move to any of squares, if so return true
-
-        // see if piece can take attacking piece, if so return true
-
-
-
-        return false;
+        // Check if path is horizontal, vertical or diagonal
+        int deltaX = Integer.compare(endX - startX, 0);
+        int deltaY = Integer.compare(endY - startY, 0);
+        
+        int x = startX + deltaX;
+        int y = startY + deltaY;
+        
+        while (x != endX || y != endY) {
+            if (board.getPiece(x, y) != null) {
+                return false;
+            }
+            x += deltaX;
+            y += deltaY;
+        }
+        
+        return true;
     }
 }
