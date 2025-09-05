@@ -44,6 +44,7 @@ public class ChessGUI implements GameStateObserver {
         boardPanel.refresh();
         statusPanel.updateStatus(event.getGameState());
         statusPanel.setTurn(event.getSource().getCurrentPlayer().isWhite());
+        statusPanel.updateMoveHistory(Board.getMoveHistory());
         
         // Check for checkmate or stalemate
         GameState state = event.getGameState();

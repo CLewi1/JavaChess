@@ -68,9 +68,10 @@ javachess/
     - [ ] basic moves
     - [ ] captures
     - [ ] check/checkmate
-- Planned:
-    - [ ] Tests
+    - [ ] Basic Tests
     - [ ] En passant
+- Planned:
+    - [ ] Fix King capturing into check
     - [ ] Castling
     - [ ] Promotion UI
     - [ ] Multi-save management

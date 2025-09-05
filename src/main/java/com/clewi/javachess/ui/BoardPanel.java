@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import com.clewi.javachess.model.Board;
+import com.clewi.javachess.pieces.Pawn;
 
 public class BoardPanel extends JPanel {
     private static final int SQUARE_SIZE = 65;
@@ -164,12 +166,18 @@ public class BoardPanel extends JPanel {
                               " to " + clickedSquare.x + "," + clickedSquare.y);
             
             // Create a move
-            MoveType moveType = clickedPiece != null ? MoveType.CAPTURE : MoveType.NORMAL;
+            MoveType moveType = determineMoveType(selectedPiece, selectedPosition, clickedSquare);
             Move move = new Move(selectedPosition, clickedSquare, selectedPiece, moveType);
             
             // Process the move through the game manager
             gameManager.makeMove(move);
-            
+
+            // Print last move details
+            Move lastMove = Board.getLastMove();
+            if (lastMove != null) {
+                System.out.println("Last move: " + lastMove);
+            }
+
             // Deselect piece after move attempt
             gameManager.deselectPiece();
             selectedSquare = null;
@@ -177,7 +185,25 @@ public class BoardPanel extends JPanel {
         }
     }
     
-    private boolean isWithinBounds(Point point) {
-        return point.x >= 0 && point.x < 8 && point.y >= 0 && point.y < 8;
+    private MoveType determineMoveType(Piece selectedPiece, Point source, Point dest) {
+        Piece destPiece = gameManager.getBoard().getPiece(dest.x, dest.y);
+        
+        // Check for en passant
+        if (selectedPiece instanceof Pawn) {
+            int direction = selectedPiece.isWhite() ? -1 : 1;
+            // En passant: diagonal move to empty square
+            if (Math.abs(dest.x - source.x) == 1 && dest.y == source.y + direction && destPiece == null) {
+                Piece adjacentPiece = gameManager.getBoard().getPiece(dest.x, source.y);
+                if (adjacentPiece instanceof Pawn &&
+                    adjacentPiece.isWhite() != selectedPiece.isWhite()) {
+                    if (gameManager.getBoard().isEnPassantPossible((Pawn) adjacentPiece)) {
+                        return MoveType.EN_PASSANT;
+                    }
+                }
+            }
+        }
+        
+        // Normal capture or move
+        return destPiece != null ? MoveType.CAPTURE : MoveType.NORMAL;
     }
 }

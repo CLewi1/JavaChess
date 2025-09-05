@@ -1,6 +1,5 @@
 package com.clewi.javachess.pieces;
 
-import java.awt.Point;
 import com.clewi.javachess.model.Board;
 import com.clewi.javachess.util.DebugUtils;
 
@@ -9,7 +8,7 @@ public class Pawn extends Piece {
 
     public Pawn(int x, int y, boolean is_white, String file_path, Board board, boolean is_captured)
     {
-        super(x, y, is_white, file_path, board, is_captured);
+        super(x, y, is_white, file_path, board, is_captured, "Pawn");
     }
     
     @Override
@@ -33,7 +32,7 @@ public class Pawn extends Piece {
         
         // Movement direction depends on the color
         int direction = isWhite() ? -1 : 1;
-        
+
         // Moving straight ahead (no capture)
         if (destination_x == x) {
             // One square forward
@@ -52,6 +51,20 @@ public class Pawn extends Piece {
                 return canMove;
             }
         }
+
+        // En Passant
+        if (Math.abs(destination_x - x) == 1 && destination_y == y + direction) {
+            Piece adjacentPiece = board.getPiece(destination_x, y);
+            if (adjacentPiece instanceof Pawn && adjacentPiece.isWhite() != isWhite()) {
+                // Check if the adjacent pawn just moved two squares forward
+
+                System.out.println("\nChecking en passant for " + adjacentPiece);
+                if (board.isEnPassantPossible((Pawn) adjacentPiece)) {
+                    DebugUtils.logPawnMove("En Passant capture possible");
+                    return true;
+                }
+            }
+        }
         
         // Diagonal capture
         if (Math.abs(destination_x - x) == 1 && destination_y == y + direction) {
@@ -61,6 +74,7 @@ public class Pawn extends Piece {
             return canCapture;
         }
         
+
         DebugUtils.logPawnMove("Move doesn't match any pawn movement pattern");
         return false;
     }

@@ -1,17 +1,14 @@
 package com.clewi.javachess.pieces;
 
 import com.clewi.javachess.model.Board;
-import com.clewi.javachess.game.MoveValidator;
 
 public class King extends Piece {
 
     private boolean has_moved = false;
-    private static final int BOARD_MIN = 0;
-    private static final int BOARD_MAX = 7;
 
     public King(int x, int y, boolean is_white, String file_path, Board board, boolean is_captured)
     {
-        super(x,y,is_white,file_path, board, is_captured);
+        super(x,y,is_white,file_path, board, is_captured, "King");
     }
     
     public void setHasMoved(boolean has_moved)
