@@ -31,4 +31,14 @@ public class Move {
     public MoveType getMoveType() {
         return moveType;
     }
+
+    @Override
+    public String toString() {
+        return piece.getAbbreviation() +
+                (moveType == MoveType.CAPTURE ? "x" : "") +
+                (char) ('a' + source.x) + (8 - source.y) +
+                (char) ('a' + destination.x) + (8 - destination.y) +
+                (moveType == MoveType.CASTLE ? " castling" : "") +
+                (moveType == MoveType.PROMOTION ? " promoting" : "");
+    }
 }

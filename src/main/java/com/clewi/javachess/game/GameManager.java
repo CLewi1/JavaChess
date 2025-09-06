@@ -55,6 +55,16 @@ public class GameManager {
                 handleCapture(capturedPiece);
             }
             
+            // Handle en passant captures
+            if (move.getMoveType() == MoveType.EN_PASSANT) {
+                Piece enPassantCaptured = board.getPiece(dest.x, source.y);
+                if (enPassantCaptured != null) {
+                    DebugUtils.logImportant("En passant capturing " + enPassantCaptured.getClass().getSimpleName());
+                    enPassantCaptured.setCaptured(true);
+                    handleCapture(enPassantCaptured);
+                }
+            }
+            
             // Update board
             board.movePiece(move);
             

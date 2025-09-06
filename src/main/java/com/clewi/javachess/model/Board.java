@@ -11,6 +11,7 @@ public class Board {
     private static final int BOARD_SIZE = 8;
     private List<Piece> whitePieces;
     private List<Piece> blackPieces;
+    private static List<Move> moveHistory = new ArrayList<>();
     
     /**
      * Creates a new board with all pieces in their starting positions.
@@ -111,7 +112,23 @@ public class Board {
         Point dest = move.getDestination();
         Piece piece = move.getPiece();
         
-        // Remove piece at destination if there is one (capture)
+        // Handle en passant capture
+        if (move.getMoveType() == MoveType.EN_PASSANT) {
+            // For en passant, the captured pawn is at (dest.x, source.y)
+            Piece capturedPawn = squares[dest.x][source.y];
+            if (capturedPawn != null) {
+                if (capturedPawn.isWhite()) {
+                    whitePieces.remove(capturedPawn);
+                } else {
+                    blackPieces.remove(capturedPawn);
+                }
+                squares[dest.x][source.y] = null; // Remove from board
+                capturedPawn.setCaptured(true);
+                DebugUtils.log("En passant capture: " + capturedPawn.getClass().getSimpleName() + " at " + dest.x + "," + source.y);
+            }
+        }
+        
+        // Remove piece at destination if there is one (normal capture)
         Piece capturedPiece = squares[dest.x][dest.y];
         if (capturedPiece != null) {
             if (capturedPiece.isWhite()) {
@@ -125,6 +142,7 @@ public class Board {
         squares[source.x][source.y] = null;
         squares[dest.x][dest.y] = piece;
         piece.setPosition(dest);
+        moveHistory.add(move);
     }
     
     public void updatePiecePosition(Piece piece, Point source, Point dest) {
@@ -145,11 +163,6 @@ public class Board {
         }
         
         // Print board state for debugging
-        DebugUtils.printBoard(this);
-    }
-    
-    private void printBoardState() {
-        // Use the utility method instead
         DebugUtils.printBoard(this);
     }
     
@@ -211,5 +224,50 @@ public class Board {
                 pieces.add(piece);
             }
         }
+    }
+
+    public static Move getLastMove() {
+        if (moveHistory.isEmpty()) {
+            return null;
+        }
+        return moveHistory.get(moveHistory.size() - 1);
+    }
+
+    public boolean isEnPassantPossible(Pawn adjacentPawn) {
+        // get last move
+        Move lastMove = getLastMove();
+        if (lastMove == null) {
+            return false;
+        }
+
+        // get moved piece
+        Piece movedPiece = lastMove.getPiece();
+
+        // check if the last piece was a pawn and is the same color
+        if (!(movedPiece instanceof Pawn && movedPiece.isWhite() == adjacentPawn.isWhite())) {
+            DebugUtils.log("Last moved piece is not a pawn of the same color");
+            return false;
+        }
+
+        // check if the adjacent pawn is the one that was moved
+        if (movedPiece.getX() != adjacentPawn.getX() || movedPiece.getY() != adjacentPawn.getY()) {
+            DebugUtils.log("Adjacent pawn is not the moved piece");
+            return false;
+        }
+
+        // Check if the last move was a pawn moving two squares forward
+        Point source = lastMove.getSource();
+        Point dest = lastMove.getDestination();
+        if (source.x == dest.x && Math.abs(source.y - dest.y) == 2) {
+            DebugUtils.log("En Passant is possible");
+            return true;
+        }
+
+        return false;
+
+    }
+
+    public static List<Move> getMoveHistory() {
+        return moveHistory;
     }
 }

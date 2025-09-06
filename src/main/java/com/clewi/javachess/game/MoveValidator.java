@@ -68,6 +68,12 @@ public class MoveValidator {
         Point source = move.getSource();
         Point dest = move.getDestination();
         Piece capturedPiece = board.getPiece(dest);
+        Piece enPassantCapturedPiece = null;
+        
+        // Handle en passant capture during simulation
+        if (move.getMoveType() == MoveType.EN_PASSANT) {
+            enPassantCapturedPiece = board.getPiece(dest.x, source.y);
+        }
         
         // Enter simulation mode to suppress unnecessary logs
         DebugUtils.enterSimulationMode();
@@ -75,11 +81,23 @@ public class MoveValidator {
         // Simulate the move
         board.updatePiecePosition(piece, source, dest);
         
+        // Simulate en passant capture if applicable
+        if (enPassantCapturedPiece != null) {
+            board.setSquare(dest.x, source.y, null); // Remove captured pawn
+            enPassantCapturedPiece.setCaptured(true);
+        }
+        
         // Check if king is in check after the move
         boolean kingInCheck = isKingInCheck(piece.isWhite());
         
         // Restore the board state
         board.undoMove(piece, source, dest, capturedPiece);
+        
+        // Restore en passant captured piece
+        if (enPassantCapturedPiece != null) {
+            board.setSquare(dest.x, source.y, enPassantCapturedPiece);
+            enPassantCapturedPiece.setCaptured(false);
+        }
         
         // Exit simulation mode
         DebugUtils.exitSimulationMode();
@@ -199,8 +217,14 @@ public class MoveValidator {
         
         // Remember the current state
         Piece capturedPiece = board.getPiece(dest);
+        Piece enPassantCapturedPiece = null;
         int originalX = piece.getX();
         int originalY = piece.getY();
+        
+        // Handle en passant capture during simulation
+        if (move.getMoveType() == MoveType.EN_PASSANT) {
+            enPassantCapturedPiece = board.getPiece(dest.x, source.y);
+        }
         
         // Enter simulation mode
         DebugUtils.enterSimulationMode();
@@ -209,11 +233,19 @@ public class MoveValidator {
         if (capturedPiece != null) {
             capturedPiece.setCaptured(true);
         }
+        if (enPassantCapturedPiece != null) {
+            enPassantCapturedPiece.setCaptured(true);
+        }
         
         // Temporarily update board
         board.updatePiecePosition(piece, source, dest);
         piece.setX(dest.x);
         piece.setY(dest.y);
+        
+        // Simulate en passant capture if applicable
+        if (enPassantCapturedPiece != null) {
+            board.setSquare(dest.x, source.y, null); // Remove captured pawn
+        }
         
         // Check if king is still in check
         boolean stillInCheck = isKingInCheckAfterMove(piece.isWhite());
@@ -223,10 +255,14 @@ public class MoveValidator {
         piece.setX(originalX);
         piece.setY(originalY);
         
-        // Restore captured piece
+        // Restore captured pieces
         if (capturedPiece != null) {
             board.setSquare(dest.x, dest.y, capturedPiece);
             capturedPiece.setCaptured(false);
+        }
+        if (enPassantCapturedPiece != null) {
+            board.setSquare(dest.x, source.y, enPassantCapturedPiece);
+            enPassantCapturedPiece.setCaptured(false);
         }
         
         // Exit simulation mode

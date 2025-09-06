@@ -6,7 +6,7 @@ import com.clewi.javachess.model.Board;
 public class Bishop extends Piece {
 
     public Bishop(int x, int y, boolean is_white, String file_path, Board board, boolean is_captured) {
-        super(x, y, is_white, file_path, board, is_captured);
+        super(x, y, is_white, file_path, board, is_captured, "Bishop");
     }
     
     @Override
