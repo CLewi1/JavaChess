@@ -65,16 +65,16 @@ javachess/
 
 ## Current status & TODO
 - Implemented: 
-    - [ ] basic moves
-    - [ ] captures
-    - [ ] check/checkmate
-    - [ ] Basic Tests
-    - [ ] En passant
+    - [x] basic moves
+    - [x] captures
+    - [x] check/checkmate
+    - [x] Basic Tests
+    - [x] En passant
+    - [x] Multi-save management
+    - [x] Fix King capturing into check
 - Planned:
-    - [ ] Fix King capturing into check
     - [ ] Castling
     - [ ] Promotion UI
-    - [ ] Multi-save management
     - [ ] Undo / take-back
     - [ ] Timer / clocks
     - [ ] Redesign button

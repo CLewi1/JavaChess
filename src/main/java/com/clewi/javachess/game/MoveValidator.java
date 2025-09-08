@@ -80,6 +80,7 @@ public class MoveValidator {
         
         // Simulate the move
         board.updatePiecePosition(piece, source, dest);
+        piece.setPosition(dest); // Update piece's internal position
         
         // Simulate en passant capture if applicable
         if (enPassantCapturedPiece != null) {
@@ -119,6 +120,7 @@ public class MoveValidator {
         
         // Simulate the move
         board.updatePiecePosition(piece, source, dest);
+        piece.setPosition(dest); // Update piece's internal position
         
         // Check if the king is in check after the move
         boolean kingInCheck = isKingInCheck(isWhite);
