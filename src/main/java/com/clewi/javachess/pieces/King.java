@@ -47,10 +47,27 @@ public class King extends Piece {
             return false;
         }
 
-        // We don't check for check here since that's done in MoveValidator
-        
+        // Check if the destination square is under attack by opponent pieces
+        if (isSquareUnderAttack(destination_x, destination_y)) {
+            return false;
+        }
+
         // If all the above checks are passed, the king can move to the destination
         return true;
+    }
+
+    private boolean isSquareUnderAttack(int x, int y) {
+        if (board == null) {
+            return false;
+        }
+        
+        // Check if any opponent piece can attack this square
+        for (Piece piece : board.getPieces(!this.isWhite())) {
+            if (piece.canMove(x, y)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isOneSquareMove(int x, int y, int destination_x, int destination_y)
