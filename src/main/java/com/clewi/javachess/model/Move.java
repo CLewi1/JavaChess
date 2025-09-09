@@ -8,12 +8,18 @@ public class Move {
     private final Point destination;
     private final Piece piece;
     private final MoveType moveType;
+    private final String promotionChoice; // nullable, used for promotions
 
     public Move(Point source, Point destination, Piece piece, MoveType moveType) {
+        this(source, destination, piece, moveType, null);
+    }
+
+    public Move(Point source, Point destination, Piece piece, MoveType moveType, String promotionChoice) {
         this.source = source;
         this.destination = destination;
         this.piece = piece;
         this.moveType = moveType;
+        this.promotionChoice = promotionChoice;
     }
 
     public Point getSource() {
@@ -32,6 +38,10 @@ public class Move {
         return moveType;
     }
 
+    public String getPromotionChoice() {
+        return promotionChoice;
+    }
+
     @Override
     public String toString() {
         return piece.getAbbreviation() +
@@ -39,6 +49,6 @@ public class Move {
                 (char) ('a' + source.x) + (8 - source.y) +
                 (char) ('a' + destination.x) + (8 - destination.y) +
                 (moveType == MoveType.CASTLE ? " castling" : "") +
-                (moveType == MoveType.PROMOTION ? " promoting" : "");
+                (moveType == MoveType.PROMOTION ? " promoting=" + (promotionChoice != null ? promotionChoice : "?") : "");
     }
 }

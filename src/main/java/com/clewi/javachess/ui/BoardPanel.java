@@ -168,7 +168,21 @@ public class BoardPanel extends JPanel {
             
             // Create a move
             MoveType moveType = determineMoveType(selectedPiece, selectedPosition, clickedSquare);
-            Move move = new Move(selectedPosition, clickedSquare, selectedPiece, moveType);
+            Move move;
+            // If promotion, prompt user for choice
+            if (moveType == MoveType.PROMOTION && selectedPiece instanceof Pawn) {
+                String[] options = {"Queen", "Rook", "Bishop", "Knight"};
+                String choice = (String) JOptionPane.showInputDialog(this,
+                        "Choose promotion piece:",
+                        "Pawn Promotion",
+                        JOptionPane.PLAIN_MESSAGE,
+                        null,
+                        options,
+                        options[0]);
+                move = new Move(selectedPosition, clickedSquare, selectedPiece, moveType, choice);
+            } else {
+                move = new Move(selectedPosition, clickedSquare, selectedPiece, moveType);
+            }
             
             // Process the move through the game manager
             gameManager.makeMove(move);
@@ -209,6 +223,13 @@ public class BoardPanel extends JPanel {
             if (Math.abs(dest.x - source.x) == 2 && dest.y == source.y) {
                 // King moving 2 squares horizontally indicates castling
                 return MoveType.CASTLE;
+            }
+        }
+
+        // Check for promotion
+        if (selectedPiece instanceof Pawn) {
+            if ((selectedPiece.isWhite() && dest.y == 0) || (!selectedPiece.isWhite() && dest.y == 7)) {
+                return MoveType.PROMOTION;
             }
         }
         
