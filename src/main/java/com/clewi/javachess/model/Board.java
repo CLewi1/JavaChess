@@ -189,10 +189,54 @@ public class Board {
         
         // Move the piece
         squares[source.x][source.y] = null;
-        squares[dest.x][dest.y] = piece;
-        piece.setPosition(dest);
+        // Handle promotion: if pawn reaches last rank, replace with chosen piece
+        if (move.getMoveType() == MoveType.PROMOTION && piece instanceof Pawn) {
+            boolean isWhite = piece.isWhite();
+            String choice = move.getPromotionChoice();
+            if (choice == null) {
+                choice = "Queen"; // default promotion
+            }
+
+            // Remove pawn from tracked pieces
+            if (piece.isWhite()) {
+                whitePieces.remove(piece);
+            } else {
+                blackPieces.remove(piece);
+            }
+
+            // Create the promoted piece
+            Piece promoted = null;
+            switch (choice.toLowerCase()) {
+                case "queen":
+                    promoted = new Queen(dest.x, dest.y, isWhite, "Queen.png", this, false);
+                    break;
+                case "rook":
+                    promoted = new Rook(dest.x, dest.y, isWhite, "Rook.png", this, false);
+                    break;
+                case "bishop":
+                    promoted = new Bishop(dest.x, dest.y, isWhite, "Bishop.png", this, false);
+                    break;
+                case "knight":
+                    promoted = new Knight(dest.x, dest.y, isWhite, "Knight.png", this, false);
+                    break;
+                default:
+                    promoted = new Queen(dest.x, dest.y, isWhite, "Queen.png", this, false);
+            }
+
+            if (promoted != null) {
+                promoted.setBoard(this);
+                promoted.setHasMoved();
+                squares[dest.x][dest.y] = promoted;
+                // Track promoted piece
+                trackPiece(promoted);
+            }
+        } else {
+            squares[dest.x][dest.y] = piece;
+            piece.setPosition(dest);
+            piece.setHasMoved();
+        }
+
         moveHistory.add(move);
-        piece.setHasMoved();
     }
     
     public void updatePiecePosition(Piece piece, Point source, Point dest) {
