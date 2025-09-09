@@ -7,7 +7,7 @@ public class Queen extends Piece {
 
     public Queen(int x, int y, boolean is_white, String file_path, Board board, boolean is_captured)
     {
-        super(x,y,is_white,file_path, board, is_captured, "Queen");
+        super(x,y,is_white,file_path, board, is_captured, "Queen", false);
     }
     
     @Override

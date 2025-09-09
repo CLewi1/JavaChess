@@ -42,10 +42,8 @@ public class GameManager {
             Point source = move.getSource();
             Point dest = move.getDestination();
             
-            // Update pawn's hasMoved status if it's a pawn
-            if (piece instanceof Pawn) {
-                ((Pawn) piece).setHasMoved();
-            }
+            // Update hasMoved status
+            piece.setHasMoved();
             
             // Handle captures
             Piece capturedPiece = board.getPiece(dest.x, dest.y);

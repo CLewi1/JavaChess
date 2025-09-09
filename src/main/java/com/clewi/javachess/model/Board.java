@@ -127,6 +127,55 @@ public class Board {
                 DebugUtils.log("En passant capture: " + capturedPawn.getClass().getSimpleName() + " at " + dest.x + "," + source.y);
             }
         }
+
+        // Handle castling
+        if (move.getMoveType() == MoveType.CASTLE) {
+            King king = (King) piece;
+            boolean isKingside = dest.x > source.x; // Moving right = kingside
+            
+            if (king.isWhite()) {
+                if (isKingside) {
+                    // Kingside castling: move rook from h1 (7,7) to f1 (5,7)
+                    Piece rook = squares[7][7];
+                    if (rook instanceof Rook) {
+                        squares[5][7] = rook;
+                        squares[7][7] = null;
+                        rook.setPosition(new Point(5, 7));
+                        rook.setHasMoved();
+                    }
+                } else {
+                    // Queenside castling: move rook from a1 (0,7) to d1 (3,7)
+                    Piece rook = squares[0][7];
+                    if (rook instanceof Rook) {
+                        squares[3][7] = rook;
+                        squares[0][7] = null;
+                        rook.setPosition(new Point(3, 7));
+                        rook.setHasMoved();
+                    }
+                }
+            } else {
+                if (isKingside) {
+                    // Kingside castling: move rook from h8 (7,0) to f8 (5,0)
+                    Piece rook = squares[7][0];
+                    if (rook instanceof Rook) {
+                        squares[5][0] = rook;
+                        squares[7][0] = null;
+                        rook.setPosition(new Point(5, 0));
+                        rook.setHasMoved();
+                    }
+                } else {
+                    // Queenside castling: move rook from a8 (0,0) to d8 (3,0)
+                    Piece rook = squares[0][0];
+                    if (rook instanceof Rook) {
+                        squares[3][0] = rook;
+                        squares[0][0] = null;
+                        rook.setPosition(new Point(3, 0));
+                        rook.setHasMoved();
+                    }
+                }
+            }
+            DebugUtils.log("Castling: " + (isKingside ? "Kingside" : "Queenside") + " for " + (king.isWhite() ? "White" : "Black"));
+        }
         
         // Remove piece at destination if there is one (normal capture)
         Piece capturedPiece = squares[dest.x][dest.y];
@@ -143,6 +192,7 @@ public class Board {
         squares[dest.x][dest.y] = piece;
         piece.setPosition(dest);
         moveHistory.add(move);
+        piece.setHasMoved();
     }
     
     public void updatePiecePosition(Piece piece, Point source, Point dest) {
