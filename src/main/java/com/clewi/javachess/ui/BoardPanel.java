@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import com.clewi.javachess.model.Board;
+import com.clewi.javachess.pieces.King;
 import com.clewi.javachess.pieces.Pawn;
 
 public class BoardPanel extends JPanel {
@@ -200,6 +201,14 @@ public class BoardPanel extends JPanel {
                         return MoveType.EN_PASSANT;
                     }
                 }
+            }
+        }
+
+        // Check for castling
+        if (selectedPiece instanceof King) {
+            if (Math.abs(dest.x - source.x) == 2 && dest.y == source.y) {
+                // King moving 2 squares horizontally indicates castling
+                return MoveType.CASTLE;
             }
         }
         

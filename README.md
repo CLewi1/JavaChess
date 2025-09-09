@@ -72,8 +72,8 @@ javachess/
     - [x] En passant
     - [x] Multi-save management
     - [x] Fix King capturing into check
+    - [x] Castling (kingside and queenside)
 - Planned:
-    - [ ] Castling
     - [ ] Promotion UI
     - [ ] Undo / take-back
     - [ ] Timer / clocks

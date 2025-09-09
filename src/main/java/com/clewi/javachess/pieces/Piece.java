@@ -14,8 +14,9 @@ public abstract class Piece implements Serializable {
     private String filePath;
     protected transient Board board;
     protected String name;
+    protected Boolean hasMoved;
     
-    public Piece(int x, int y, boolean isWhite, String filePath, Board board, boolean isCaptured, String name) {
+    public Piece(int x, int y, boolean isWhite, String filePath, Board board, boolean isCaptured, String name, Boolean hasMoved) {
         this.isWhite = isWhite;
         this.x = x;
         this.y = y;
@@ -23,6 +24,16 @@ public abstract class Piece implements Serializable {
         this.board = board;
         this.isCaptured = isCaptured;
         this.name = name;
+        this.hasMoved = hasMoved;
+    }
+
+    public Boolean getHasMoved() {
+        return hasMoved;
+    
+    }
+
+    public void setHasMoved() {
+        this.hasMoved = true;
     }
     
     public String getFilePath() {

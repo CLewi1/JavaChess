@@ -4,11 +4,10 @@ import com.clewi.javachess.model.Board;
 import com.clewi.javachess.util.DebugUtils;
 
 public class Pawn extends Piece {
-    private boolean hasMoved = false;
 
     public Pawn(int x, int y, boolean is_white, String file_path, Board board, boolean is_captured)
     {
-        super(x, y, is_white, file_path, board, is_captured, "Pawn");
+        super(x, y, is_white, file_path, board, is_captured, "Pawn", false);
     }
     
     @Override
@@ -77,13 +76,5 @@ public class Pawn extends Piece {
 
         DebugUtils.logPawnMove("Move doesn't match any pawn movement pattern");
         return false;
-    }
-    
-    public void setHasMoved() {
-        this.hasMoved = true;
-    }
-    
-    public boolean getHasMoved() {
-        return hasMoved;
     }
 }

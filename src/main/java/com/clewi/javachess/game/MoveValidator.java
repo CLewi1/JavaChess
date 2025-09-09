@@ -4,8 +4,6 @@ import com.clewi.javachess.model.*;
 import com.clewi.javachess.pieces.*;
 import com.clewi.javachess.util.DebugUtils;
 import java.awt.Point;
-import java.util.ArrayList;
-import java.util.List;
 
 public class MoveValidator {
     private final Board board;
@@ -36,6 +34,11 @@ public class MoveValidator {
         // Check if the piece can move to the destination according to chess rules
         if (!piece.canMove(dest.x, dest.y)) {
             return false;
+        }
+        
+        // Special validation for castling moves
+        if (move.getMoveType() == MoveType.CASTLE) {
+            return validateCastling(move);
         }
         
         // Capture check: Print debug message if this is a capture attempt
@@ -273,5 +276,89 @@ public class MoveValidator {
         // Return true only if check is resolved
         DebugUtils.log("Move " + (stillInCheck ? "does not resolve" : "resolves") + " check");
         return !stillInCheck;
+    }
+    
+    /**
+     * Validates castling moves with special rules
+     * @param move The castling move to validate
+     * @return true if castling is valid
+     */
+    private boolean validateCastling(Move move) {
+        Piece piece = move.getPiece();
+        Point source = move.getSource();
+        Point dest = move.getDestination();
+        
+        // Must be a king
+        if (!(piece instanceof King)) {
+            return false;
+        }
+        
+        King king = (King) piece;
+        boolean isKingside = dest.x > source.x;
+        
+        // King and rook must not have moved
+        if (king.getHasMoved()) {
+            DebugUtils.log("Castling failed: King has already moved");
+            return false;
+        }
+        
+        // Get the rook
+        int rookX = isKingside ? 7 : 0;
+        int rookY = source.y;
+        Piece rook = board.getPiece(rookX, rookY);
+        
+        if (!(rook instanceof Rook) || rook.getHasMoved()) {
+            DebugUtils.log("Castling failed: Rook missing or has moved");
+            return false;
+        }
+        
+        // Path must be clear
+        int direction = isKingside ? 1 : -1;
+        for (int x = source.x + direction; x != rookX; x += direction) {
+            if (board.getPiece(x, rookY) != null) {
+                DebugUtils.log("Castling failed: Path is blocked at " + x + "," + rookY);
+                return false;
+            }
+        }
+        
+        // King cannot be in check
+        if (isKingInCheck(king.isWhite())) {
+            DebugUtils.log("Castling failed: King is currently in check");
+            return false;
+        }
+        
+        // King cannot pass through or end up in a square under attack
+        int endX = isKingside ? 6 : 2;
+        for (int x = source.x + direction; x != endX + direction; x += direction) {
+            if (isSquareUnderAttack(x, rookY, king.isWhite())) {
+                DebugUtils.log("Castling failed: King would pass through or end up in check at " + x + "," + rookY);
+                return false;
+            }
+        }
+        
+        DebugUtils.log("Castling validation successful: " + (isKingside ? "Kingside" : "Queenside"));
+        return true;
+    }
+    
+    /**
+     * Checks if a square is under attack by the opponent
+     * @param x The x coordinate
+     * @param y The y coordinate
+     * @param isWhiteKing Whether we're checking for a white king (opponent is black)
+     * @return true if the square is under attack
+     */
+    private boolean isSquareUnderAttack(int x, int y, boolean isWhiteKing) {
+        // Check if any opponent piece can attack this square
+        for (Piece piece : board.getPieces(!isWhiteKing)) {
+            if (piece.isCaptured()) {
+                continue;
+            }
+            
+            // Use basic attack logic without recursive check validation
+            if (canPieceAttackSquare(piece, x, y)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
