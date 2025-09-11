@@ -4,6 +4,8 @@ import com.clewi.javachess.game.GameManager;
 import com.clewi.javachess.game.GameStateEvent;
 import com.clewi.javachess.game.GameStateObserver;
 import com.clewi.javachess.model.*;
+import com.clewi.javachess.util.DebugUtils;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
@@ -13,14 +15,34 @@ public class ChessGUI implements GameStateObserver {
     private BoardPanel boardPanel;
     private StatusPanel statusPanel;
     private GameManager gameManager;
+    private Timer swingClockTimer;
     
     public ChessGUI() {
         gameManager = new GameManager();
+        gameManager.initClocks(300, 2);
+        DebugUtils.logImportant("Clocks initialized to 5 minutes with 2 second increment.");
         
         // Register this as an observer for game state changes
         gameManager.registerObserver(this);
         
         initializeComponents();
+
+            swingClockTimer = new Timer(1000, e -> {
+            if (gameManager.isClockEnabled()) {
+                boolean timeout = gameManager.tick(); // decrements active clock
+                // update the labels in StatusPanel
+                statusPanel.updateTimers(gameManager.getWhiteSecondsRemaining(), gameManager.getBlackSecondsRemaining());
+                if (timeout) {
+                    // stop timer when timeout occurs (gameManager.tick() should have updated game state)
+                    swingClockTimer.stop();
+                    // optionally show dialog - handled in onGameStateChanged observer too
+                }
+            } else {
+                // still update labels (shows --:--)
+                statusPanel.updateTimers(gameManager.getWhiteSecondsRemaining(), gameManager.getBlackSecondsRemaining());
+            }
+        });
+        swingClockTimer.start();
     }
     
     private void initializeComponents() {
@@ -45,7 +67,7 @@ public class ChessGUI implements GameStateObserver {
         statusPanel.updateStatus(event.getGameState());
         statusPanel.setTurn(event.getSource().getCurrentPlayer().isWhite());
         statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory());
-        
+
         // Check for checkmate or stalemate
         GameState state = event.getGameState();
         if (state == GameState.CHECKMATE) {
@@ -67,6 +89,7 @@ public class ChessGUI implements GameStateObserver {
     
     public void startNewGame() {
         gameManager.resetGame();
+        gameManager.initClocks(300, 2);
         boardPanel.refresh();
         statusPanel.updateStatus(GameState.PLAYING);
         statusPanel.setTurn(true); // White goes first

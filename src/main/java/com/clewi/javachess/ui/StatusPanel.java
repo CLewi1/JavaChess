@@ -147,4 +147,22 @@ public class StatusPanel extends JPanel {
             }
         });
     }
+
+    public void updateTimers(int whiteSeconds, int blackSeconds) {
+        SwingUtilities.invokeLater(() -> {
+            // If you have GameManager.formatSecondsAsClock(...) you can use it.
+            // Otherwise use simple mm:ss formatting:
+            String whiteText = formatSecondsAsClock(whiteSeconds);
+            String blackText = formatSecondsAsClock(blackSeconds);
+            whiteTimerLabel.setText(whiteText);
+            blackTimerLabel.setText(blackText);
+        });
+    }
+
+    private String formatSecondsAsClock(int seconds) {
+        int s = Math.max(0, seconds);
+        int m = s / 60;
+        int sec = s % 60;
+        return String.format("%02d:%02d", m, sec);
+    }
 }
