@@ -51,7 +51,13 @@ public class GameManager {
             Piece piece = move.getPiece();
             Point source = move.getSource();
             Point dest = move.getDestination();
-            
+
+            // Save Clock State Before Move
+            move.setWhiteSecondsBefore(this.whiteSecondsRemaining);
+            move.setBlackSecondsBefore(this.blackSecondsRemaining);
+            move.setWhiteClockActiveBefore(this.whiteClockActive);
+            move.setClocksRunningBefore(this.clocksRunning);
+
             // Handle captures
             Piece capturedPiece = board.getPiece(dest.x, dest.y);
             if (capturedPiece != null) {
@@ -340,6 +346,23 @@ public class GameManager {
 
         // Undo the move on the board
         board.undoLastMove(lastMove);
+
+        // Restore clock state
+        Integer whiteBefore = lastMove.getWhiteSecondsBefore();
+        Integer blackBefore = lastMove.getBlackSecondsBefore();
+        Boolean activeBefore = lastMove.getWhiteClockActiveBefore();
+        Boolean runningBefore = lastMove.getClocksRunningBefore();
+
+        if (whiteBefore != null && blackBefore != null && activeBefore != null && runningBefore != null) {
+            this.whiteSecondsRemaining = whiteBefore;
+            this.blackSecondsRemaining = blackBefore;
+            this.whiteClockActive = activeBefore;
+            this.clocksRunning = runningBefore;
+            DebugUtils.logImportant("Clock state restored on undo.");
+        } else {
+            undoClockSwitch();
+            DebugUtils.logImportant("No clock state to restore on undo. Falling back to switch.");
+        }
 
         // Switch back to the previous player
         switchPlayer();
