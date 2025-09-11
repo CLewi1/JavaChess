@@ -138,8 +138,37 @@ public class ClockTests {
 
     }
 
-    // test undo move resets clock
-    
+    @Test
+    public void testUndoMoveResetsClock() {
+        gameManager.initClocks(300, 2);
+        board = TestUtils.emptyBoard();
+
+        // Simulate first move
+        Pawn whitePawn = TestUtils.placePawn(board, 4, 6, true); // white pawn
+        gameManager.makeMove(new Move(new Point(4, 6), new Point(4, 5), whitePawn, MoveType.NORMAL));
+        assertTrue(gameManager.areClocksRunning(), "Clocks should be running after first move");
+
+        // Simulate 5 seconds passing
+        for (int i = 0; i < 5; i++) {
+            gameManager.tick();
+        }
+
+        // Simulate black move
+        Pawn blackPawn = TestUtils.placePawn(board, 4, 1, false);
+        gameManager.makeMove(new Move(new Point(4, 1), new Point(4, 2), blackPawn, MoveType.NORMAL));
+
+        int blackTimeAfterTicks = gameManager.getBlackSecondsRemaining();
+        assertEquals(297, blackTimeAfterTicks, "Black clock should have decremented by 3 seconds");
+
+        // Undo the move
+        gameManager.undoMove();
+
+        // After undo, clocks should be paused and black time should reset to before the move
+        assertTrue(gameManager.areClocksRunning(), "Clocks should be running after undo");
+        assertEquals(300, gameManager.getBlackSecondsRemaining(), "Black clock should reset to time before the undone move");
+
+    }
+
 
 }
 
