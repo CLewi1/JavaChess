@@ -75,7 +75,18 @@ public class ChessGUI implements GameStateObserver {
             SwingUtilities.invokeLater(() -> showCheckmateDialog(winner));
         } else if (state == GameState.STALEMATE) {
             SwingUtilities.invokeLater(() -> showStalemateDialog());
+        } else if (state == GameState.DRAW) {
+            SwingUtilities.invokeLater(() -> {
+                JOptionPane.showMessageDialog(mainFrame, "The game is a draw.", "Game Over", JOptionPane.INFORMATION_MESSAGE);
+            });
+        } else if (state == GameState.TIMEOUT) {
+            Player winner = event.getSource().getOppositePlayer();
+            SwingUtilities.invokeLater(() -> {
+                String message = "Time out! " + (winner.isWhite() ? "White" : "Black") + " wins on time!";
+                JOptionPane.showMessageDialog(mainFrame, message, "Game Over", JOptionPane.INFORMATION_MESSAGE);
+            });
         }
+
     }
     
     private void showCheckmateDialog(Player winner) {
