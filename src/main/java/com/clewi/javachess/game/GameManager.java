@@ -9,6 +9,7 @@ import java.io.*;
 import java.util.*;
 
 public class GameManager {
+    // Game state management
     private GameState gameState;
     private List<GameStateObserver> observers;
     private List<Piece> whiteCapturedPieces;
@@ -17,17 +18,22 @@ public class GameManager {
     private Player whitePlayer;
     private Player blackPlayer;
     private Player currentPlayer;
+
+    // Move management
     private MoveValidator moveValidator;
     private Piece selectedPiece;
     private List<DisplayableMove> loadedMoveHistory;
 
+    // Clock-related fields
     private Integer whiteSecondsRemaining;
     private Integer blackSecondsRemaining;
     private int incrementSeconds;
     private boolean clockEnabled = false;
     private boolean whiteClockActive = false;
     private boolean clocksRunning = false;
-
+    private Integer whiteSecondsAtTurnStart;
+    private Integer blackSecondsAtTurnStart;
+    
     public GameManager() {
         this.observers = new ArrayList<>();
         this.board = new Board();
@@ -53,8 +59,10 @@ public class GameManager {
             Point dest = move.getDestination();
 
             // Save Clock State Before Move
-            move.setWhiteSecondsBefore(this.whiteSecondsRemaining);
-            move.setBlackSecondsBefore(this.blackSecondsRemaining);
+            // Save the time values as they were at the START of this player's turn (if available),
+            // otherwise fall back to the current remaining values.
+            move.setWhiteSecondsBefore(this.whiteSecondsAtTurnStart != null ? this.whiteSecondsAtTurnStart : this.whiteSecondsRemaining);
+            move.setBlackSecondsBefore(this.blackSecondsAtTurnStart != null ? this.blackSecondsAtTurnStart : this.blackSecondsRemaining);
             move.setWhiteClockActiveBefore(this.whiteClockActive);
             move.setClocksRunningBefore(this.clocksRunning);
 
@@ -335,6 +343,9 @@ public class GameManager {
             this.clockEnabled = true;
             this.whiteClockActive = saveData.isWhiteTurn();
             this.clocksRunning = false;
+            // When loading, treat the saved remaining times as the start-of-turn samples so undos restore sensibly.
+            this.whiteSecondsAtTurnStart = this.whiteSecondsRemaining;
+            this.blackSecondsAtTurnStart = this.blackSecondsRemaining;
         }
     }
 
@@ -358,6 +369,8 @@ public class GameManager {
             this.blackSecondsRemaining = blackBefore;
             this.whiteClockActive = activeBefore;
             this.clocksRunning = runningBefore;
+            this.whiteSecondsAtTurnStart = this.whiteSecondsRemaining;
+            this.blackSecondsAtTurnStart = this.blackSecondsRemaining;
             DebugUtils.logImportant("Clock state restored on undo.");
         } else {
             undoClockSwitch();
@@ -438,12 +451,18 @@ public class GameManager {
         this.clockEnabled = true;
         this.whiteClockActive = true;
         this.clocksRunning = false;
+
+        // At the start, both players' "turn start" times are their initial allocations.
+        this.whiteSecondsAtTurnStart = this.whiteSecondsRemaining;
+        this.blackSecondsAtTurnStart = this.blackSecondsRemaining;
     }
 
     public void disableClocks() {
         this.clockEnabled = false;
         this.whiteSecondsRemaining = null;
         this.blackSecondsRemaining = null;
+        this.whiteSecondsAtTurnStart = null;
+        this.blackSecondsAtTurnStart = null;
     }
 
     public boolean isClockEnabled() {
@@ -495,7 +514,15 @@ public class GameManager {
             // Black just moved, add increment
             blackSecondsRemaining += incrementSeconds;
         }
+        // Flip active clock
         whiteClockActive = !whiteClockActive;
+
+        // Record the remaining time as the start-of-turn time for the player who is now active
+        if (whiteClockActive) {
+            whiteSecondsAtTurnStart = whiteSecondsRemaining;
+        } else {
+            blackSecondsAtTurnStart = blackSecondsRemaining;
+        }
     }
 
     public void undoClockSwitch() {
@@ -504,8 +531,11 @@ public class GameManager {
         // Remove increment added during switch
         if (whiteClockActive) {
             whiteSecondsRemaining = Math.max(0, whiteSecondsRemaining - incrementSeconds);
+            // Update start-of-turn sample
+            whiteSecondsAtTurnStart = whiteSecondsRemaining;
         } else {
             blackSecondsRemaining = Math.max(0, blackSecondsRemaining - incrementSeconds);
+            blackSecondsAtTurnStart = blackSecondsRemaining;
         }
     }
 
