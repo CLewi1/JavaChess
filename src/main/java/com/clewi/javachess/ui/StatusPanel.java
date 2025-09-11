@@ -117,6 +117,13 @@ public class StatusPanel extends JPanel {
                 statusLabel.setText("Draw");
                 statusLabel.setForeground(Color.BLUE);
                 break;
+            case TIMEOUT:
+                statusLabel.setText("Timeout");
+                statusLabel.setForeground(Color.RED);
+                break;
+            default:
+                statusLabel.setText("Unknown state");
+                statusLabel.setForeground(Color.BLACK);
         }
     }
     

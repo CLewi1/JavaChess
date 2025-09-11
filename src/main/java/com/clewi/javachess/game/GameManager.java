@@ -516,6 +516,10 @@ public class GameManager {
         return String.format("%02d:%02d", m, sec);
     }
 
+    public boolean areClocksRunning() {
+        return clocksRunning;
+    }
+
     
 
 
