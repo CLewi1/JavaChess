@@ -19,7 +19,13 @@ public class GameManager {
     private Player currentPlayer;
     private MoveValidator moveValidator;
     private Piece selectedPiece;
-    private List<DisplayableMove> loadedMoveHistory; // For displaying loaded game history
+    private List<DisplayableMove> loadedMoveHistory;
+
+    private Integer whiteSecondsRemaining;
+    private Integer blackSecondsRemaining;
+    private int incrementSeconds;
+    private boolean clockEnabled = false;
+    private boolean whiteClockActive = false;
 
     public GameManager() {
         this.observers = new ArrayList<>();
