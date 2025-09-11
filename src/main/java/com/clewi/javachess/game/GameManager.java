@@ -26,6 +26,7 @@ public class GameManager {
     private int incrementSeconds;
     private boolean clockEnabled = false;
     private boolean whiteClockActive = false;
+    private boolean clocksRunning = false;
 
     public GameManager() {
         this.observers = new ArrayList<>();
@@ -90,6 +91,14 @@ public class GameManager {
             // Switch player and notify observers
             switchPlayer();
             notifyObservers();
+
+            if (clockEnabled && !clocksRunning) {
+                // Only start clocks after the first move
+                clocksRunning = true;
+                DebugUtils.logImportant("Clocks started.");
+            }
+
+
             switchClocks();
         } else {
             System.out.println("Invalid move attempted");
@@ -319,6 +328,7 @@ public class GameManager {
         if (whiteSecondsRemaining != null && blackSecondsRemaining != null) {
             this.clockEnabled = true;
             this.whiteClockActive = saveData.isWhiteTurn();
+            this.clocksRunning = false;
         }
     }
 
@@ -427,6 +437,8 @@ public class GameManager {
     // Called every second by UI Timer. Returns true if timeout occurred.
     public boolean tick() {
         if (!clockEnabled) return false;
+        if (!clocksRunning) return false;
+
         if (whiteClockActive) {
             whiteSecondsRemaining = Math.max(0, whiteSecondsRemaining - 1);
             if (whiteSecondsRemaining == 0) {
