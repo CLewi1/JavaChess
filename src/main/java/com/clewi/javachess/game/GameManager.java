@@ -90,6 +90,7 @@ public class GameManager {
             // Switch player and notify observers
             switchPlayer();
             notifyObservers();
+            switchClocks();
         } else {
             System.out.println("Invalid move attempted");
         }
