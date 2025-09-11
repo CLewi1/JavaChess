@@ -246,7 +246,8 @@ public class GameManager {
         }
 
         return new GameSaveData(boardState, isWhiteTurn, gameState,
-                                whiteCapturedPieces, blackCapturedPieces, moveHistoryData);
+                                whiteCapturedPieces, blackCapturedPieces, moveHistoryData,
+                                whiteSecondsRemaining, blackSecondsRemaining);
     }
     
     private void restoreFromSaveData(GameSaveData saveData) {
@@ -310,6 +311,14 @@ public class GameManager {
                 loadedMoveHistory.add(new DisplayableMove(moveData));
             }
             DebugUtils.logImportant("Restored " + loadedMoveHistory.size() + " moves for display");
+        }
+
+        // Restore clock times
+        this.whiteSecondsRemaining = saveData.getWhiteSecondsRemaining();
+        this.blackSecondsRemaining = saveData.getBlackSecondsRemaining();
+        if (whiteSecondsRemaining != null && blackSecondsRemaining != null) {
+            this.clockEnabled = true;
+            this.whiteClockActive = saveData.isWhiteTurn();
         }
     }
 
