@@ -383,4 +383,95 @@ public class GameManager {
         
         return moveData;
     }
+
+    /**
+     * Clock-related methods
+    */
+
+    public void initClocks(int secondsPerPlayer, int incrementSeconds) {
+        this.whiteSecondsRemaining = secondsPerPlayer;
+        this.blackSecondsRemaining = secondsPerPlayer;
+        this.incrementSeconds = incrementSeconds;
+        this.clockEnabled = true;
+        this.whiteClockActive = true;
+    }
+
+    public void disableClocks() {
+        this.clockEnabled = false;
+        this.whiteSecondsRemaining = null;
+        this.blackSecondsRemaining = null;
+    }
+
+    public boolean isClockEnabled() {
+        return clockEnabled;
+    }
+
+    public Integer getWhiteSecondsRemaining() {
+        return whiteSecondsRemaining;
+    }
+
+    public Integer getBlackSecondsRemaining() {
+        return blackSecondsRemaining;
+    }
+
+    // Called every second by UI Timer. Returns true if timeout occurred.
+    public boolean tick() {
+        if (!clockEnabled) return false;
+        if (whiteClockActive) {
+            whiteSecondsRemaining = Math.max(0, whiteSecondsRemaining - 1);
+            if (whiteSecondsRemaining == 0) {
+                handleTimeout(false); // white timed out -> black wins
+                return true;
+            }
+        } else {
+            blackSecondsRemaining = Math.max(0, blackSecondsRemaining - 1);
+            if (blackSecondsRemaining == 0) {
+                handleTimeout(true); // black timed out -> white wins
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void handleTimeout(boolean whiteWins) {
+        clockEnabled = false;
+        gameState = GameState.TIMEOUT;
+        DebugUtils.logImportant((whiteWins ? "White" : "Black") + " wins on time!");
+        notifyObservers();
+    }
+
+    public void switchClocks() {
+        if (!clockEnabled) return;
+        if (whiteClockActive) {
+            // White just moved, add increment
+            whiteSecondsRemaining += incrementSeconds;
+        } else {
+            // Black just moved, add increment
+            blackSecondsRemaining += incrementSeconds;
+        }
+        whiteClockActive = !whiteClockActive;
+    }
+
+    public void undoClockSwitch() {
+        if (!clockEnabled) return;
+        whiteClockActive = !whiteClockActive;
+        // Remove increment added during switch
+        if (whiteClockActive) {
+            whiteSecondsRemaining = Math.max(0, whiteSecondsRemaining - incrementSeconds);
+        } else {
+            blackSecondsRemaining = Math.max(0, blackSecondsRemaining - incrementSeconds);
+        }
+    }
+
+    public static String formatTime(int seconds) {
+        int s = Math.max(0, seconds);
+        int m = s / 60;
+        int sec = s % 60;
+        return String.format("%02d:%02d", m, sec);
+    }
+
+    
+
+
+
 }
