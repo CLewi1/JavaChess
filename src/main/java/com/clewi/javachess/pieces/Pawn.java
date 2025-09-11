@@ -42,7 +42,7 @@ public class Pawn extends Piece {
             }
             
             // Two squares forward from starting position
-            if (!hasMoved && destination_y == y + 2 * direction) {
+            if ((hasMoved == null || !hasMoved) && destination_y == y + 2 * direction) {
                 boolean pathClear = board.getPiece(x, y + direction) == null;
                 boolean destClear = board.getPiece(destination_x, destination_y) == null;
                 boolean canMove = pathClear && destClear;

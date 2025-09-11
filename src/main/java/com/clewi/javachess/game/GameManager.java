@@ -2,8 +2,6 @@ package com.clewi.javachess.game;
 
 import com.clewi.javachess.model.*;
 import com.clewi.javachess.pieces.*;
-// Remove this import to prevent circular dependency
-// import com.clewi.javachess.ui.ChessGUI;
 import com.clewi.javachess.util.DebugUtils;
 import java.awt.Point;
 import java.io.*;
@@ -12,6 +10,8 @@ import java.util.*;
 public class GameManager {
     private GameState gameState;
     private List<GameStateObserver> observers;
+    private List<Piece> whiteCapturedPieces;
+    private List<Piece> blackCapturedPieces;
     private Board board;
     private Player whitePlayer;
     private Player blackPlayer;
@@ -41,9 +41,6 @@ public class GameManager {
             Piece piece = move.getPiece();
             Point source = move.getSource();
             Point dest = move.getDestination();
-            
-            // Update hasMoved status
-            piece.setHasMoved();
             
             // Handle captures
             Piece capturedPiece = board.getPiece(dest.x, dest.y);
@@ -221,8 +218,8 @@ public class GameManager {
         }
         
         boolean isWhiteTurn = currentPlayer == whitePlayer;
-        List<Piece> whiteCapturedPieces = new ArrayList<>(whitePlayer.getCapturedPieces());
-        List<Piece> blackCapturedPieces = new ArrayList<>(blackPlayer.getCapturedPieces());
+        whiteCapturedPieces = new ArrayList<>(whitePlayer.getCapturedPieces());
+        blackCapturedPieces = new ArrayList<>(blackPlayer.getCapturedPieces());
         
         return new GameSaveData(boardState, isWhiteTurn, gameState, 
                                 whiteCapturedPieces, blackCapturedPieces);
@@ -278,5 +275,49 @@ public class GameManager {
         // Reset other components
         this.selectedPiece = null;
         this.moveValidator = new MoveValidator(board);
+    }
+
+    public boolean undoMove() {
+        Move lastMove = Board.getLastMove();
+        if (lastMove == null) {
+            return false; // No moves to undo
+        }
+
+        // Undo the move on the board
+        board.undoLastMove(lastMove);
+
+        // Switch back to the previous player
+        switchPlayer();
+
+        // Update game state (assume we're back to playing unless we need to check for check)
+        boolean currentPlayerInCheck = moveValidator.isKingInCheck(currentPlayer.isWhite());
+        if (currentPlayerInCheck) {
+            boolean isCheckmate = moveValidator.isCheckmate(currentPlayer.isWhite());
+            if (isCheckmate) {
+                gameState = GameState.CHECKMATE;
+            } else {
+                gameState = GameState.CHECK;
+            }
+        } else {
+            gameState = GameState.PLAYING;
+        }
+
+        // Restore captured pieces if needed
+        if (lastMove.getCapturedPiece() != null) {
+            Piece captured = lastMove.getCapturedPiece();
+            // Remove from current player's captured pieces
+            getCurrentPlayer().removeCapturedPiece(captured);
+        }
+
+        if (lastMove.getEnPassantCapturedPiece() != null) {
+            Piece enPassantCaptured = lastMove.getEnPassantCapturedPiece();
+            // Remove from current player's captured pieces  
+            getCurrentPlayer().removeCapturedPiece(enPassantCaptured);
+        }
+
+        // Notify observers of the change
+        notifyObservers();
+        
+        return true;
     }
 }

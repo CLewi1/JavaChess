@@ -1,1 +1,5 @@
+com/clewi/javachess/game/MoveValidatorTest.class
+com/clewi/javachess/game/CastlingTest.class
+com/clewi/javachess/model/BoardTest.class
 com/clewi/javachess/game/PromotionTest.class
+com/clewi/javachess/testutils/TestUtils.class

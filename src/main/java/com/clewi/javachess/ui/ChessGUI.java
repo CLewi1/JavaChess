@@ -139,4 +139,18 @@ public class ChessGUI implements GameStateObserver {
             }
         }
     }
+
+    public void undoMove() {
+        boolean success = gameManager.undoMove();
+        if (success) {
+            boardPanel.refresh();
+            statusPanel.updateStatus(gameManager.getGameState());
+            statusPanel.setTurn(gameManager.getCurrentPlayer().isWhite());
+            statusPanel.updateMoveHistory(Board.getMoveHistory());
+        } else {
+            JOptionPane.showMessageDialog(mainFrame, 
+                    "No moves to undo", 
+                    "Undo Move", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
 }

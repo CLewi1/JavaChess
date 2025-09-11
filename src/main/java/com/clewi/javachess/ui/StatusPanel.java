@@ -14,6 +14,9 @@ public class StatusPanel extends JPanel {
     private JLabel turnLabel;
     private ChessGUI parentGUI;
     private JButton newGameButton;
+    private JButton saveButton;
+    private JButton loadButton;
+    private JButton undoButton;
     private JList<String> historyList;
     private DefaultTableModel tableModel;
     private JTable moveTable;
@@ -59,17 +62,19 @@ public class StatusPanel extends JPanel {
         buttonPanel.setLayout(new GridLayout(3, 1, 5, 5));
         
         newGameButton = new JButton("New Game");
-        JButton saveButton = new JButton("Save Game");
-        JButton loadButton = new JButton("Load Game");
+        saveButton = new JButton("Save Game");
+        loadButton = new JButton("Load Game");
+        undoButton = new JButton("Undo Move");
         
         newGameButton.addActionListener(e -> parentGUI.startNewGame());
         saveButton.addActionListener(e -> parentGUI.saveGame());
         loadButton.addActionListener(e -> parentGUI.loadGame());
+        undoButton.addActionListener(e -> parentGUI.undoMove());
         
         buttonPanel.add(newGameButton);
         buttonPanel.add(saveButton);
         buttonPanel.add(loadButton);
-        
+        buttonPanel.add(undoButton);
         // Add all panels to the status panel
         add(titlePanel, BorderLayout.NORTH);
         add(infoPanel, BorderLayout.CENTER);

@@ -73,9 +73,10 @@ javachess/
     - [x] Multi-save management
     - [x] Fix King capturing into check
     - [x] Castling (kingside and queenside)
+    - [x] Promotion UI
+    - [x] Undo / take-back
 - Planned:
-    - [ ] Promotion UI
-    - [ ] Undo / take-back
+    
     - [ ] Timer / clocks
     - [ ] Redesign button
     - [ ] AI Opponent
