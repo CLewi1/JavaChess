@@ -437,6 +437,7 @@ public class GameManager {
         this.incrementSeconds = incrementSeconds;
         this.clockEnabled = true;
         this.whiteClockActive = true;
+        this.clocksRunning = false;
     }
 
     public void disableClocks() {

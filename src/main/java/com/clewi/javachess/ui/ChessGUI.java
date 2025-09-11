@@ -9,6 +9,7 @@ import com.clewi.javachess.util.DebugUtils;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.util.ArrayList;
 
 public class ChessGUI implements GameStateObserver {
     private JFrame mainFrame;
@@ -103,7 +104,11 @@ public class ChessGUI implements GameStateObserver {
         gameManager.initClocks(300, 2);
         boardPanel.refresh();
         statusPanel.updateStatus(GameState.PLAYING);
-        statusPanel.setTurn(true); // White goes first
+        statusPanel.setTurn(true);
+
+        // Reset move history display
+        Board.setMoveHistory(new ArrayList<>());
+        statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory());
     }
     
     public void saveGame() {
