@@ -4,11 +4,13 @@
 /Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/game/GameStateObserver.java
 /Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/game/MoveValidator.java
 /Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/model/Board.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/model/DisplayableMove.java
 /Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/model/GameSaveData.java
 /Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/model/GameState.java
 /Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/model/GameStateEvent.java
 /Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/model/GameStateObserver.java
 /Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/model/Move.java
+/Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/model/MoveData.java
 /Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/model/MoveType.java
 /Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/model/Player.java
 /Users/colinlewandowski/Code/Java Apps/javachess/src/main/java/com/clewi/javachess/pieces/Bishop.java

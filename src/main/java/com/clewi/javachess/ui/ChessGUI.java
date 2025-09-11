@@ -44,7 +44,7 @@ public class ChessGUI implements GameStateObserver {
         boardPanel.refresh();
         statusPanel.updateStatus(event.getGameState());
         statusPanel.setTurn(event.getSource().getCurrentPlayer().isWhite());
-        statusPanel.updateMoveHistory(Board.getMoveHistory());
+        statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory());
         
         // Check for checkmate or stalemate
         GameState state = event.getGameState();
@@ -129,6 +129,7 @@ public class ChessGUI implements GameStateObserver {
                 boardPanel.refresh();
                 statusPanel.updateStatus(gameManager.getGameState());
                 statusPanel.setTurn(gameManager.getCurrentPlayer().isWhite());
+                statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory()); // Update move history display
                 JOptionPane.showMessageDialog(mainFrame, 
                         "Game loaded successfully", 
                         "Load Game", JOptionPane.INFORMATION_MESSAGE);
@@ -137,6 +138,20 @@ public class ChessGUI implements GameStateObserver {
                         "Failed to load game", 
                         "Load Game", JOptionPane.ERROR_MESSAGE);
             }
+        }
+    }
+
+    public void undoMove() {
+        boolean success = gameManager.undoMove();
+        if (success) {
+            boardPanel.refresh();
+            statusPanel.updateStatus(gameManager.getGameState());
+            statusPanel.setTurn(gameManager.getCurrentPlayer().isWhite());
+            statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory());
+        } else {
+            JOptionPane.showMessageDialog(mainFrame, 
+                    "No moves to undo", 
+                    "Undo Move", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 }

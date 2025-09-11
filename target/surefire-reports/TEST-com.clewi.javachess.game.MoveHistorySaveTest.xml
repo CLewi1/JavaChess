@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.clewi.javachess.game.CastlingTest" time="0.01" tests="7" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.clewi.javachess.game.MoveHistorySaveTest" time="0.032" tests="1" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="23"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -58,23 +58,15 @@
     <property name="socksNonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="java.class.version" value="67.0"/>
   </properties>
-  <testcase name="testQueensideCastlingWhite" classname="com.clewi.javachess.game.CastlingTest" time="0.003">
-    <system-out><![CDATA[Castling validation successful: Queenside
-Castling: Queenside for White
+  <testcase name="testMoveHistorySaveAndLoad" classname="com.clewi.javachess.game.MoveHistorySaveTest" time="0.031">
+    <system-out><![CDATA[GameManager: Attempting move
+King is not in check
+GameManager: Attempting move
+King is not in check
+Saving move history with 16 moves.
+Game saved successfully to: test_save_with_history.chess
+Restored 16 moves for display
+Game loaded successfully from: test_save_with_history.chess
 ]]></system-out>
   </testcase>
-  <testcase name="testCastlingFailsWhenRookHasMoved" classname="com.clewi.javachess.game.CastlingTest" time="0.0"/>
-  <testcase name="testCastlingFailsWhenKingHasMoved" classname="com.clewi.javachess.game.CastlingTest" time="0.001"/>
-  <testcase name="testCastlingFailsWhenPathIsBlocked" classname="com.clewi.javachess.game.CastlingTest" time="0.0"/>
-  <testcase name="testKingsideCastlingBlack" classname="com.clewi.javachess.game.CastlingTest" time="0.001">
-    <system-out><![CDATA[Castling validation successful: Kingside
-Castling: Kingside for Black
-]]></system-out>
-  </testcase>
-  <testcase name="testKingsideCastlingWhite" classname="com.clewi.javachess.game.CastlingTest" time="0.001">
-    <system-out><![CDATA[Castling validation successful: Kingside
-Castling: Kingside for White
-]]></system-out>
-  </testcase>
-  <testcase name="testCastlingFailsWhenKingIsInCheck" classname="com.clewi.javachess.game.CastlingTest" time="0.0"/>
 </testsuite>

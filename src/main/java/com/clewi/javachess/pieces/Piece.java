@@ -36,6 +36,14 @@ public abstract class Piece implements Serializable {
         this.hasMoved = true;
     }
     
+    public void setHasMoved(boolean hasMoved) {
+        this.hasMoved = hasMoved;
+    }
+    
+    public void setHasMoved(Boolean hasMoved) {
+        this.hasMoved = hasMoved;
+    }
+    
     public String getFilePath() {
         return filePath;
     }

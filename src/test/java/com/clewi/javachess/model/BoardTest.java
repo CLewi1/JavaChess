@@ -2,7 +2,6 @@ package com.clewi.javachess.model;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.clewi.javachess.pieces.King;
 import com.clewi.javachess.pieces.Pawn;
 import org.junit.jupiter.api.Test;
 import java.awt.Point;

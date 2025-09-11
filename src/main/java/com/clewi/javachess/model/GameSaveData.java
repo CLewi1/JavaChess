@@ -16,16 +16,19 @@ public class GameSaveData implements Serializable {
     private GameState gameState;
     private List<Piece> whiteCapturedPieces;
     private List<Piece> blackCapturedPieces;
+    private List<MoveData> moveHistory;
     
     public GameSaveData(Piece[][] boardState, boolean isWhiteTurn, 
                         GameState gameState, 
                         List<Piece> whiteCapturedPieces, 
-                        List<Piece> blackCapturedPieces) {
+                        List<Piece> blackCapturedPieces,
+                        List<MoveData> moveHistory) {
         this.boardState = boardState;
         this.isWhiteTurn = isWhiteTurn;
         this.gameState = gameState;
         this.whiteCapturedPieces = whiteCapturedPieces;
         this.blackCapturedPieces = blackCapturedPieces;
+        this.moveHistory = moveHistory;
     }
     
     public Piece[][] getBoardState() {
@@ -46,5 +49,13 @@ public class GameSaveData implements Serializable {
     
     public List<Piece> getBlackCapturedPieces() {
         return blackCapturedPieces;
+    }
+
+    public List<MoveData> getMoveHistory() {
+        return moveHistory;
+    }
+
+    public void setMoveHistory(List<MoveData> moveHistory) {
+        this.moveHistory = moveHistory;
     }
 }

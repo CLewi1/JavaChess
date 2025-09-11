@@ -21,6 +21,10 @@ public class Player {
         capturedPieces.add(piece);
     }
 
+    public void removeCapturedPiece(Piece piece) {
+        capturedPieces.remove(piece);
+    }
+
     public List<Piece> getCapturedPieces() {
         return capturedPieces;
     }
