@@ -111,6 +111,7 @@ public class Board {
         Point source = move.getSource();
         Point dest = move.getDestination();
         Piece piece = move.getPiece();
+        move.setWasPieceHasMoved(piece.getHasMoved());
         
         // Handle en passant capture
         if (move.getMoveType() == MoveType.EN_PASSANT) {
@@ -124,6 +125,7 @@ public class Board {
                 }
                 squares[dest.x][source.y] = null; // Remove from board
                 capturedPawn.setCaptured(true);
+                move.setEnPassantCapturedPiece(capturedPawn);
                 DebugUtils.log("En passant capture: " + capturedPawn.getClass().getSimpleName() + " at " + dest.x + "," + source.y);
             }
         }
@@ -185,6 +187,8 @@ public class Board {
             } else {
                 blackPieces.remove(capturedPiece);
             }
+            move.setCapturedPiece(capturedPiece);
+            capturedPiece.setCaptured(true);
         }
         
         // Move the piece
@@ -226,6 +230,7 @@ public class Board {
             if (promoted != null) {
                 promoted.setBoard(this);
                 promoted.setHasMoved();
+                move.setPromotedPiece(promoted);
                 squares[dest.x][dest.y] = promoted;
                 // Track promoted piece
                 trackPiece(promoted);
@@ -237,6 +242,130 @@ public class Board {
         }
 
         moveHistory.add(move);
+    }
+
+    /**
+     * Undo the last move (uses move metadata stored in Move)
+     * @param move The move to undo
+     */
+    public void undoLastMove(Move move) {
+        if (move == null) return;
+
+        Point source = move.getSource();
+        Point dest = move.getDestination();
+        Piece piece = move.getPiece();
+
+        // If a promotion occurred, remove promoted piece and restore pawn
+        if (move.getMoveType() == MoveType.PROMOTION && move.getPromotedPiece() != null) {
+            Piece promoted = move.getPromotedPiece();
+            // remove promoted piece from board and tracked pieces
+            squares[dest.x][dest.y] = null;
+            if (promoted.isWhite()) {
+                whitePieces.remove(promoted);
+            } else {
+                blackPieces.remove(promoted);
+            }
+            // restore pawn
+            squares[source.x][source.y] = piece;
+            piece.setPosition(source);
+            piece.setCaptured(false);
+            trackPiece(piece);
+        } else {
+            // Handle castling undo
+            if (move.getMoveType() == MoveType.CASTLE) {
+                // Undo king movement
+                squares[dest.x][dest.y] = null;
+                squares[source.x][source.y] = piece;
+                piece.setPosition(source);
+
+                // Undo rook movement
+                boolean isKingside = dest.x > source.x; // Moving right = kingside
+                if (piece.isWhite()) {
+                    if (isKingside) {
+                        // Undo kingside castling: move rook from f1 (5,7) back to h1 (7,7)
+                        Piece rook = squares[5][7];
+                        if (rook instanceof Rook) {
+                            squares[7][7] = rook;
+                            squares[5][7] = null;
+                            rook.setPosition(new Point(7, 7));
+                        }
+                    } else {
+                        // Undo queenside castling: move rook from d1 (3,7) back to a1 (0,7)
+                        Piece rook = squares[3][7];
+                        if (rook instanceof Rook) {
+                            squares[0][7] = rook;
+                            squares[3][7] = null;
+                            rook.setPosition(new Point(0, 7));
+                        }
+                    }
+                } else {
+                    if (isKingside) {
+                        // Undo kingside castling: move rook from f8 (5,0) back to h8 (7,0)
+                        Piece rook = squares[5][0];
+                        if (rook instanceof Rook) {
+                            squares[7][0] = rook;
+                            squares[5][0] = null;
+                            rook.setPosition(new Point(7, 0));
+                        }
+                    } else {
+                        // Undo queenside castling: move rook from d8 (3,0) back to a8 (0,0)
+                        Piece rook = squares[3][0];
+                        if (rook instanceof Rook) {
+                            squares[0][0] = rook;
+                            squares[3][0] = null;
+                            rook.setPosition(new Point(0, 0));
+                        }
+                    }
+                }
+            } else {
+                // Handle en passant restoration
+                if (move.getEnPassantCapturedPiece() != null) {
+                    Piece ep = move.getEnPassantCapturedPiece();
+                    squares[ep.getX()][ep.getY()] = ep;
+                    ep.setCaptured(false);
+                    trackPiece(ep);
+                }
+
+                // Restore captured piece at destination
+                if (move.getCapturedPiece() != null) {
+                    Piece cap = move.getCapturedPiece();
+                    squares[dest.x][dest.y] = cap;
+                    cap.setCaptured(false);
+                    trackPiece(cap);
+                } else {
+                    squares[dest.x][dest.y] = null;
+                }
+
+                // Put moving piece back
+                squares[source.x][source.y] = piece;
+                piece.setPosition(source);
+            }
+        }
+
+        // restore hasMoved flag for the moving piece to its original state
+        piece.setHasMoved(move.wasPieceHasMoved());
+
+        // For castling, also restore hasMoved flag for the rook (which should also be false for first-time castling)
+        if (move.getMoveType() == MoveType.CASTLE) {
+            // Find the rook that was moved during castling and reset its hasMoved flag
+            boolean isKingside = move.getDestination().x > move.getSource().x;
+            Point rookPosition;
+            if (piece.isWhite()) {
+                rookPosition = isKingside ? new Point(7, 7) : new Point(0, 7);
+            } else {
+                rookPosition = isKingside ? new Point(7, 0) : new Point(0, 0);
+            }
+            
+            Piece rook = squares[rookPosition.x][rookPosition.y];
+            if (rook instanceof Rook) {
+                rook.setHasMoved(false); // Rook should not have moved before castling
+            }
+        }
+
+        // Remove this move from move history
+        if (!moveHistory.isEmpty()) {
+            moveHistory.remove(moveHistory.size() - 1);
+        }
     }
     
     public void updatePiecePosition(Piece piece, Point source, Point dest) {
@@ -363,5 +492,13 @@ public class Board {
 
     public static List<Move> getMoveHistory() {
         return moveHistory;
+    }
+
+    public static void setMoveHistory(List<Move> history) {
+        moveHistory = history != null ? history : new ArrayList<>();
+    }
+
+    public static void clearMoveHistory() {
+        moveHistory.clear();
     }
 }

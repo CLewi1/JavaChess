@@ -9,6 +9,11 @@ public class Move {
     private final Piece piece;
     private final MoveType moveType;
     private final String promotionChoice; // nullable, used for promotions
+    // transient metadata filled by Board.movePiece to support undo
+    private transient Piece capturedPiece;
+    private transient Piece enPassantCapturedPiece;
+    private transient Piece promotedPiece;
+    private transient Boolean wasPieceHasMoved;
 
     public Move(Point source, Point destination, Piece piece, MoveType moveType) {
         this(source, destination, piece, moveType, null);
@@ -40,6 +45,38 @@ public class Move {
 
     public String getPromotionChoice() {
         return promotionChoice;
+    }
+
+    public Piece getCapturedPiece() {
+        return capturedPiece;
+    }
+
+    public void setCapturedPiece(Piece p) {
+        this.capturedPiece = p;
+    }
+
+    public Piece getEnPassantCapturedPiece() {
+        return enPassantCapturedPiece;
+    }
+
+    public void setEnPassantCapturedPiece(Piece p) {
+        this.enPassantCapturedPiece = p;
+    }
+
+    public Piece getPromotedPiece() {
+        return promotedPiece;
+    }
+
+    public void setPromotedPiece(Piece p) {
+        this.promotedPiece = p;
+    }
+
+    public Boolean wasPieceHasMoved() {
+        return wasPieceHasMoved;
+    }
+
+    public void setWasPieceHasMoved(Boolean v) {
+        this.wasPieceHasMoved = v;
     }
 
     @Override

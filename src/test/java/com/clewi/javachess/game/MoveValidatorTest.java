@@ -7,7 +7,6 @@ import com.clewi.javachess.model.Move;
 import com.clewi.javachess.model.MoveType;
 import com.clewi.javachess.pieces.Pawn;
 import com.clewi.javachess.pieces.Knight;
-import com.clewi.javachess.pieces.King;
 import com.clewi.javachess.testutils.TestUtils;
 import org.junit.jupiter.api.Test;
 import java.awt.Point;

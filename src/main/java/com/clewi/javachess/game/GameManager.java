@@ -2,9 +2,8 @@ package com.clewi.javachess.game;
 
 import com.clewi.javachess.model.*;
 import com.clewi.javachess.pieces.*;
-// Remove this import to prevent circular dependency
-// import com.clewi.javachess.ui.ChessGUI;
 import com.clewi.javachess.util.DebugUtils;
+
 import java.awt.Point;
 import java.io.*;
 import java.util.*;
@@ -12,12 +11,15 @@ import java.util.*;
 public class GameManager {
     private GameState gameState;
     private List<GameStateObserver> observers;
+    private List<Piece> whiteCapturedPieces;
+    private List<Piece> blackCapturedPieces;
     private Board board;
     private Player whitePlayer;
     private Player blackPlayer;
     private Player currentPlayer;
     private MoveValidator moveValidator;
     private Piece selectedPiece;
+    private List<DisplayableMove> loadedMoveHistory; // For displaying loaded game history
 
     public GameManager() {
         this.observers = new ArrayList<>();
@@ -27,6 +29,7 @@ public class GameManager {
         this.currentPlayer = whitePlayer;
         this.gameState = GameState.PLAYING;
         this.moveValidator = new MoveValidator(board);
+        this.loadedMoveHistory = new ArrayList<>();
     }
 
     public void registerObserver(GameStateObserver observer) {
@@ -41,9 +44,6 @@ public class GameManager {
             Piece piece = move.getPiece();
             Point source = move.getSource();
             Point dest = move.getDestination();
-            
-            // Update hasMoved status
-            piece.setHasMoved();
             
             // Handle captures
             Piece capturedPiece = board.getPiece(dest.x, dest.y);
@@ -93,10 +93,6 @@ public class GameManager {
         getCurrentPlayer().addCapturedPiece(piece);
     }
 
-    private boolean isValidMove(Move move) {
-        return moveValidator.isValidMove(move);
-    }
-
     private void notifyObservers() {
         for (GameStateObserver observer : observers) {
             observer.onGameStateChanged(new GameStateEvent(this));
@@ -119,10 +115,6 @@ public class GameManager {
         currentPlayer = currentPlayer == whitePlayer ? blackPlayer : whitePlayer;
     }
     
-    private boolean isCheckmate(Player player) {
-        return moveValidator.isCheckmate(player.isWhite());
-    }
-
     // Add these necessary methods for the UI
     public void selectPiece(int x, int y) {
         Piece piece = board.getPiece(x, y);
@@ -144,6 +136,18 @@ public class GameManager {
     }
     
     /**
+     * Get the move history for display.
+     * During active gameplay, returns the actual move history.
+     * After loading a game, returns the loaded move history for display.
+     */
+    public List<?> getDisplayMoveHistory() {
+        if (!loadedMoveHistory.isEmpty()) {
+            return loadedMoveHistory;
+        }
+        return Board.getMoveHistory();
+    }
+    
+    /**
      * Resets the game to its initial state.
      */
     public void resetGame() {
@@ -159,6 +163,7 @@ public class GameManager {
         // Reset game state
         this.gameState = GameState.PLAYING;
         this.selectedPiece = null;
+        this.loadedMoveHistory = new ArrayList<>(); // Clear loaded move history
         
         // Notify observers about the reset
         notifyObservers();
@@ -209,6 +214,8 @@ public class GameManager {
             e.printStackTrace();
             return false;
         }
+
+
     }
     
     private GameSaveData createSaveData() {
@@ -221,11 +228,18 @@ public class GameManager {
         }
         
         boolean isWhiteTurn = currentPlayer == whitePlayer;
-        List<Piece> whiteCapturedPieces = new ArrayList<>(whitePlayer.getCapturedPieces());
-        List<Piece> blackCapturedPieces = new ArrayList<>(blackPlayer.getCapturedPieces());
+        whiteCapturedPieces = new ArrayList<>(whitePlayer.getCapturedPieces());
+        blackCapturedPieces = new ArrayList<>(blackPlayer.getCapturedPieces());
+        DebugUtils.logImportant("Saving move history with " + Board.getMoveHistory().size() + " moves.");
         
-        return new GameSaveData(boardState, isWhiteTurn, gameState, 
-                                whiteCapturedPieces, blackCapturedPieces);
+        // Convert Move objects to MoveData objects for serialization
+        List<MoveData> moveHistoryData = new ArrayList<>();
+        for (Move move : Board.getMoveHistory()) {
+            moveHistoryData.add(convertMoveToData(move));
+        }
+
+        return new GameSaveData(boardState, isWhiteTurn, gameState,
+                                whiteCapturedPieces, blackCapturedPieces, moveHistoryData);
     }
     
     private void restoreFromSaveData(GameSaveData saveData) {
@@ -278,5 +292,89 @@ public class GameManager {
         // Reset other components
         this.selectedPiece = null;
         this.moveValidator = new MoveValidator(board);
+        
+        // Clear the actual move history (for undo functionality - pieces are in final positions)
+        Board.setMoveHistory(new ArrayList<>());
+        
+        // Convert saved MoveData to displayable moves for the UI
+        this.loadedMoveHistory = new ArrayList<>();
+        if (saveData.getMoveHistory() != null) {
+            for (MoveData moveData : saveData.getMoveHistory()) {
+                loadedMoveHistory.add(new DisplayableMove(moveData));
+            }
+            DebugUtils.logImportant("Restored " + loadedMoveHistory.size() + " moves for display");
+        }
+    }
+
+    public boolean undoMove() {
+        Move lastMove = Board.getLastMove();
+        if (lastMove == null) {
+            return false; // No moves to undo
+        }
+
+        // Undo the move on the board
+        board.undoLastMove(lastMove);
+
+        // Switch back to the previous player
+        switchPlayer();
+
+        // Update game state (assume we're back to playing unless we need to check for check)
+        boolean currentPlayerInCheck = moveValidator.isKingInCheck(currentPlayer.isWhite());
+        if (currentPlayerInCheck) {
+            boolean isCheckmate = moveValidator.isCheckmate(currentPlayer.isWhite());
+            if (isCheckmate) {
+                gameState = GameState.CHECKMATE;
+            } else {
+                gameState = GameState.CHECK;
+            }
+        } else {
+            gameState = GameState.PLAYING;
+        }
+
+        // Restore captured pieces if needed
+        if (lastMove.getCapturedPiece() != null) {
+            Piece captured = lastMove.getCapturedPiece();
+            // Remove from current player's captured pieces
+            getCurrentPlayer().removeCapturedPiece(captured);
+        }
+
+        if (lastMove.getEnPassantCapturedPiece() != null) {
+            Piece enPassantCaptured = lastMove.getEnPassantCapturedPiece();
+            // Remove from current player's captured pieces  
+            getCurrentPlayer().removeCapturedPiece(enPassantCaptured);
+        }
+
+        // Notify observers of the change
+        notifyObservers();
+        
+        return true;
+    }
+    
+    /**
+     * Converts a Move object to a MoveData object for serialization
+     */
+    private MoveData convertMoveToData(Move move) {
+        MoveData moveData = new MoveData(
+            move.getSource(),
+            move.getDestination(),
+            move.getPiece().getClass().getSimpleName(),
+            move.getPiece().isWhite(),
+            move.getMoveType(),
+            move.getPromotionChoice()
+        );
+        
+        // Set additional data for undo functionality
+        if (move.getCapturedPiece() != null) {
+            moveData.setCapturedPieceType(move.getCapturedPiece().getClass().getSimpleName());
+        }
+        if (move.getEnPassantCapturedPiece() != null) {
+            moveData.setEnPassantCapturedPieceType(move.getEnPassantCapturedPiece().getClass().getSimpleName());
+        }
+        if (move.getPromotedPiece() != null) {
+            moveData.setPromotedPieceType(move.getPromotedPiece().getClass().getSimpleName());
+        }
+        moveData.setWasPieceHasMoved(move.wasPieceHasMoved());
+        
+        return moveData;
     }
 }

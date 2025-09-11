@@ -1,6 +1,5 @@
 package com.clewi.javachess.pieces;
 
-import java.awt.Point;
 import com.clewi.javachess.model.Board;
 
 public class Knight extends Piece {

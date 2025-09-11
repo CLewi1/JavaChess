@@ -9,13 +9,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.awt.Point;
 
 public class CastlingTest {
-    private GameManager gameManager;
     private Board board;
     private MoveValidator moveValidator;
 
     @BeforeEach
     void setUp() {
-        gameManager = new GameManager();
+        new GameManager();
         board = TestUtils.emptyBoard();
         moveValidator = new MoveValidator(board);
     }

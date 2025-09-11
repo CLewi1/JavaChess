@@ -6,16 +6,16 @@ import com.clewi.javachess.pieces.Piece;
 public class DebugUtils {
     
     // Set this to false to suppress verbose debug messages
-    public static final boolean DEBUG_MODE = true;
-    
+    public static boolean DEBUG_MODE = true;
+
     // Set this to false to suppress pawn movement debug messages specifically
-    public static final boolean DEBUG_PAWN_MOVES = false;
+    public static boolean DEBUG_PAWN_MOVES = false;
     
     // Set this to false to suppress board state printouts
-    public static final boolean DEBUG_BOARD_STATE = false;
+    public static boolean DEBUG_BOARD_STATE = false;
     
     // Set this to false to suppress move simulation debug messages
-    public static final boolean DEBUG_MOVE_SIMULATION = false;
+    public static boolean DEBUG_MOVE_SIMULATION = false;
     
     // Flag used to indicate if we're in simulation mode (for validation)
     private static boolean simulationMode = false;

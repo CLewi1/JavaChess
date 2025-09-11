@@ -5,7 +5,6 @@ import com.clewi.javachess.pieces.Pawn;
 import com.clewi.javachess.pieces.King;
 import com.clewi.javachess.pieces.Knight;
 import com.clewi.javachess.pieces.Queen;
-import java.awt.Point;
 
 /**
  * Lightweight helpers for constructing test board positions.

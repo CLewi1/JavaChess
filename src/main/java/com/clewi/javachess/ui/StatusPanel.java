@@ -1,7 +1,6 @@
 package com.clewi.javachess.ui;
 
 import com.clewi.javachess.model.GameState;
-import com.clewi.javachess.model.Move;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -14,7 +13,6 @@ public class StatusPanel extends JPanel {
     private JLabel turnLabel;
     private ChessGUI parentGUI;
     private JButton newGameButton;
-    private JList<String> historyList;
     private DefaultTableModel tableModel;
     private JTable moveTable;
 
@@ -61,15 +59,18 @@ public class StatusPanel extends JPanel {
         newGameButton = new JButton("New Game");
         JButton saveButton = new JButton("Save Game");
         JButton loadButton = new JButton("Load Game");
-        
+        JButton undoButton = new JButton("Undo Move");
+
         newGameButton.addActionListener(e -> parentGUI.startNewGame());
         saveButton.addActionListener(e -> parentGUI.saveGame());
         loadButton.addActionListener(e -> parentGUI.loadGame());
+        undoButton.addActionListener(e -> parentGUI.undoMove());
         
         buttonPanel.add(newGameButton);
         buttonPanel.add(saveButton);
         buttonPanel.add(loadButton);
-        
+        buttonPanel.add(undoButton);
+
         // Add all panels to the status panel
         add(titlePanel, BorderLayout.NORTH);
         add(infoPanel, BorderLayout.CENTER);

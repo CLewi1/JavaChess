@@ -18,7 +18,6 @@ public class MoveValidator {
         }
         
         Piece piece = move.getPiece();
-        Point source = move.getSource();
         Point dest = move.getDestination();
         
         // Make sure the piece has a reference to the board
