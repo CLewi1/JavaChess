@@ -9,6 +9,7 @@ import java.io.*;
 import java.util.*;
 
 public class GameManager {
+    // Game state management
     private GameState gameState;
     private List<GameStateObserver> observers;
     private List<Piece> whiteCapturedPieces;
@@ -17,10 +18,22 @@ public class GameManager {
     private Player whitePlayer;
     private Player blackPlayer;
     private Player currentPlayer;
+
+    // Move management
     private MoveValidator moveValidator;
     private Piece selectedPiece;
-    private List<DisplayableMove> loadedMoveHistory; // For displaying loaded game history
+    private List<DisplayableMove> loadedMoveHistory;
 
+    // Clock-related fields
+    private Integer whiteSecondsRemaining;
+    private Integer blackSecondsRemaining;
+    private int incrementSeconds;
+    private boolean clockEnabled = false;
+    private boolean whiteClockActive = false;
+    private boolean clocksRunning = false;
+    private Integer whiteSecondsAtTurnStart;
+    private Integer blackSecondsAtTurnStart;
+    
     public GameManager() {
         this.observers = new ArrayList<>();
         this.board = new Board();
@@ -44,7 +57,15 @@ public class GameManager {
             Piece piece = move.getPiece();
             Point source = move.getSource();
             Point dest = move.getDestination();
-            
+
+            // Save Clock State Before Move
+            // Save the time values as they were at the START of this player's turn (if available),
+            // otherwise fall back to the current remaining values.
+            move.setWhiteSecondsBefore(this.whiteSecondsAtTurnStart != null ? this.whiteSecondsAtTurnStart : this.whiteSecondsRemaining);
+            move.setBlackSecondsBefore(this.blackSecondsAtTurnStart != null ? this.blackSecondsAtTurnStart : this.blackSecondsRemaining);
+            move.setWhiteClockActiveBefore(this.whiteClockActive);
+            move.setClocksRunningBefore(this.clocksRunning);
+
             // Handle captures
             Piece capturedPiece = board.getPiece(dest.x, dest.y);
             if (capturedPiece != null) {
@@ -84,6 +105,15 @@ public class GameManager {
             // Switch player and notify observers
             switchPlayer();
             notifyObservers();
+
+            if (clockEnabled && !clocksRunning) {
+                // Only start clocks after the first move
+                clocksRunning = true;
+                DebugUtils.logImportant("Clocks started.");
+            }
+
+
+            switchClocks();
         } else {
             System.out.println("Invalid move attempted");
         }
@@ -239,7 +269,8 @@ public class GameManager {
         }
 
         return new GameSaveData(boardState, isWhiteTurn, gameState,
-                                whiteCapturedPieces, blackCapturedPieces, moveHistoryData);
+                                whiteCapturedPieces, blackCapturedPieces, moveHistoryData,
+                                whiteSecondsRemaining, blackSecondsRemaining);
     }
     
     private void restoreFromSaveData(GameSaveData saveData) {
@@ -304,6 +335,18 @@ public class GameManager {
             }
             DebugUtils.logImportant("Restored " + loadedMoveHistory.size() + " moves for display");
         }
+
+        // Restore clock times
+        this.whiteSecondsRemaining = saveData.getWhiteSecondsRemaining();
+        this.blackSecondsRemaining = saveData.getBlackSecondsRemaining();
+        if (whiteSecondsRemaining != null && blackSecondsRemaining != null) {
+            this.clockEnabled = true;
+            this.whiteClockActive = saveData.isWhiteTurn();
+            this.clocksRunning = false;
+            // When loading, treat the saved remaining times as the start-of-turn samples so undos restore sensibly.
+            this.whiteSecondsAtTurnStart = this.whiteSecondsRemaining;
+            this.blackSecondsAtTurnStart = this.blackSecondsRemaining;
+        }
     }
 
     public boolean undoMove() {
@@ -314,6 +357,25 @@ public class GameManager {
 
         // Undo the move on the board
         board.undoLastMove(lastMove);
+
+        // Restore clock state
+        Integer whiteBefore = lastMove.getWhiteSecondsBefore();
+        Integer blackBefore = lastMove.getBlackSecondsBefore();
+        Boolean activeBefore = lastMove.getWhiteClockActiveBefore();
+        Boolean runningBefore = lastMove.getClocksRunningBefore();
+
+        if (whiteBefore != null && blackBefore != null && activeBefore != null && runningBefore != null) {
+            this.whiteSecondsRemaining = whiteBefore;
+            this.blackSecondsRemaining = blackBefore;
+            this.whiteClockActive = activeBefore;
+            this.clocksRunning = runningBefore;
+            this.whiteSecondsAtTurnStart = this.whiteSecondsRemaining;
+            this.blackSecondsAtTurnStart = this.blackSecondsRemaining;
+            DebugUtils.logImportant("Clock state restored on undo.");
+        } else {
+            undoClockSwitch();
+            DebugUtils.logImportant("No clock state to restore on undo. Falling back to switch.");
+        }
 
         // Switch back to the previous player
         switchPlayer();
@@ -377,4 +439,119 @@ public class GameManager {
         
         return moveData;
     }
+
+    /**
+     * Clock-related methods
+    */
+
+    public void initClocks(int secondsPerPlayer, int incrementSeconds) {
+        this.whiteSecondsRemaining = secondsPerPlayer;
+        this.blackSecondsRemaining = secondsPerPlayer;
+        this.incrementSeconds = incrementSeconds;
+        this.clockEnabled = true;
+        this.whiteClockActive = true;
+        this.clocksRunning = false;
+
+        // At the start, both players' "turn start" times are their initial allocations.
+        this.whiteSecondsAtTurnStart = this.whiteSecondsRemaining;
+        this.blackSecondsAtTurnStart = this.blackSecondsRemaining;
+    }
+
+    public void disableClocks() {
+        this.clockEnabled = false;
+        this.whiteSecondsRemaining = null;
+        this.blackSecondsRemaining = null;
+        this.whiteSecondsAtTurnStart = null;
+        this.blackSecondsAtTurnStart = null;
+    }
+
+    public boolean isClockEnabled() {
+        return clockEnabled;
+    }
+
+    public Integer getWhiteSecondsRemaining() {
+        return whiteSecondsRemaining;
+    }
+
+    public Integer getBlackSecondsRemaining() {
+        return blackSecondsRemaining;
+    }
+
+    // Called every second by UI Timer. Returns true if timeout occurred.
+    public boolean tick() {
+        if (!clockEnabled) return false;
+        if (!clocksRunning) return false;
+
+        if (whiteClockActive) {
+            whiteSecondsRemaining = Math.max(0, whiteSecondsRemaining - 1);
+            if (whiteSecondsRemaining == 0) {
+                handleTimeout(false); // white timed out -> black wins
+                return true;
+            }
+        } else {
+            blackSecondsRemaining = Math.max(0, blackSecondsRemaining - 1);
+            if (blackSecondsRemaining == 0) {
+                handleTimeout(true); // black timed out -> white wins
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void handleTimeout(boolean whiteWins) {
+        clockEnabled = false;
+        gameState = GameState.TIMEOUT;
+        DebugUtils.logImportant((whiteWins ? "White" : "Black") + " wins on time!");
+        notifyObservers();
+    }
+
+    public void switchClocks() {
+        if (!clockEnabled) return;
+        if (whiteClockActive) {
+            // White just moved, add increment
+            whiteSecondsRemaining += incrementSeconds;
+        } else {
+            // Black just moved, add increment
+            blackSecondsRemaining += incrementSeconds;
+        }
+        // Flip active clock
+        whiteClockActive = !whiteClockActive;
+
+        // Record the remaining time as the start-of-turn time for the player who is now active
+        if (whiteClockActive) {
+            whiteSecondsAtTurnStart = whiteSecondsRemaining;
+        } else {
+            blackSecondsAtTurnStart = blackSecondsRemaining;
+        }
+    }
+
+    public void undoClockSwitch() {
+        if (!clockEnabled) return;
+        whiteClockActive = !whiteClockActive;
+        // Remove increment added during switch
+        if (whiteClockActive) {
+            whiteSecondsRemaining = Math.max(0, whiteSecondsRemaining - incrementSeconds);
+            // Update start-of-turn sample
+            whiteSecondsAtTurnStart = whiteSecondsRemaining;
+        } else {
+            blackSecondsRemaining = Math.max(0, blackSecondsRemaining - incrementSeconds);
+            blackSecondsAtTurnStart = blackSecondsRemaining;
+        }
+    }
+
+    public static String formatTime(int seconds) {
+        int s = Math.max(0, seconds);
+        int m = s / 60;
+        int sec = s % 60;
+        return String.format("%02d:%02d", m, sec);
+    }
+
+    public boolean areClocksRunning() {
+        return clocksRunning;
+    }
+
+    
+
+
+
 }

@@ -75,8 +75,9 @@ javachess/
     - [x] Castling (kingside and queenside)
     - [x] Promotion UI
     - [x] Undo / take-back
+    - [x] Timer / clocks
 - Planned:
-    - [ ] Timer / clocks
+    - [ ] Undo moves after load
     - [ ] AI Opponent
     - [ ] Redesign UI
 

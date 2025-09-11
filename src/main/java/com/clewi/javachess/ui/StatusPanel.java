@@ -15,6 +15,10 @@ public class StatusPanel extends JPanel {
     private JButton newGameButton;
     private DefaultTableModel tableModel;
     private JTable moveTable;
+    private JPanel whiteTimerPanel;
+    private JLabel whiteTimerLabel;
+    private JPanel blackTimerPanel;
+    private JLabel blackTimerLabel;
 
     public StatusPanel(ChessGUI parent) {
         this.parentGUI = parent;
@@ -29,13 +33,24 @@ public class StatusPanel extends JPanel {
         
         // Status info panel
         JPanel infoPanel = new JPanel();
-        infoPanel.setLayout(new GridLayout(4, 1, 5, 10));
+        infoPanel.setLayout(new GridLayout(5, 1, 5, 5));
         
         statusLabel = new JLabel("Game in progress");
         turnLabel = new JLabel("White's turn");
+
+        whiteTimerPanel = new JPanel(new BorderLayout());
+        whiteTimerPanel.setBorder(BorderFactory.createTitledBorder("White Timer"));
+        whiteTimerLabel = new JLabel("00:00");
+        whiteTimerPanel.add(whiteTimerLabel, BorderLayout.CENTER);
+        blackTimerPanel = new JPanel(new BorderLayout());
+        blackTimerPanel.setBorder(BorderFactory.createTitledBorder("Black Timer"));
+        blackTimerLabel = new JLabel("00:00");
+        blackTimerPanel.add(blackTimerLabel, BorderLayout.CENTER);
         
         infoPanel.add(statusLabel);
         infoPanel.add(turnLabel);
+        infoPanel.add(whiteTimerPanel);
+        infoPanel.add(blackTimerPanel);
 
         // Move history table (two columns: White | Black)
         tableModel = new DefaultTableModel(new Object[] { "White", "Black" }, 0) {
@@ -54,7 +69,7 @@ public class StatusPanel extends JPanel {
 
         // Button panel
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(3, 1, 5, 5));
+        buttonPanel.setLayout(new GridLayout(4, 1, 5, 5));
         
         newGameButton = new JButton("New Game");
         JButton saveButton = new JButton("Save Game");
@@ -102,6 +117,13 @@ public class StatusPanel extends JPanel {
                 statusLabel.setText("Draw");
                 statusLabel.setForeground(Color.BLUE);
                 break;
+            case TIMEOUT:
+                statusLabel.setText("Timeout");
+                statusLabel.setForeground(Color.RED);
+                break;
+            default:
+                statusLabel.setText("Unknown state");
+                statusLabel.setForeground(Color.BLACK);
         }
     }
     
@@ -131,5 +153,23 @@ public class StatusPanel extends JPanel {
                 moveTable.scrollRectToVisible(moveTable.getCellRect(lastRow, 0, true));
             }
         });
+    }
+
+    public void updateTimers(int whiteSeconds, int blackSeconds) {
+        SwingUtilities.invokeLater(() -> {
+            // If you have GameManager.formatSecondsAsClock(...) you can use it.
+            // Otherwise use simple mm:ss formatting:
+            String whiteText = formatSecondsAsClock(whiteSeconds);
+            String blackText = formatSecondsAsClock(blackSeconds);
+            whiteTimerLabel.setText(whiteText);
+            blackTimerLabel.setText(blackText);
+        });
+    }
+
+    private String formatSecondsAsClock(int seconds) {
+        int s = Math.max(0, seconds);
+        int m = s / 60;
+        int sec = s % 60;
+        return String.format("%02d:%02d", m, sec);
     }
 }
