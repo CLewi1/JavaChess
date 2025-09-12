@@ -11,17 +11,11 @@ import java.util.List;
 public class StatusPanel extends JPanel {
     private JLabel statusLabel;
     private JLabel turnLabel;
-    private GameController gameController;
     private JButton newGameButton;
     private DefaultTableModel tableModel;
     private JTable moveTable;
-    private JPanel whiteTimerPanel;
-    private JLabel whiteTimerLabel;
-    private JPanel blackTimerPanel;
-    private JLabel blackTimerLabel;
 
     public StatusPanel(GameController gameController) {
-        this.gameController = gameController;
         setPreferredSize(new Dimension(200, 400));
         setLayout(new BorderLayout());
         
@@ -46,23 +40,8 @@ public class StatusPanel extends JPanel {
         turnLabel = new JLabel("White's turn");
         turnLabel.setForeground(Color.WHITE); // Make text visible on dark background
 
-        whiteTimerPanel = new JPanel(new BorderLayout());
-        whiteTimerPanel.setBorder(BorderFactory.createTitledBorder("White Timer"));
-        whiteTimerPanel.setOpaque(false);
-        whiteTimerLabel = new JLabel("00:00");
-        whiteTimerLabel.setForeground(Color.WHITE);
-        whiteTimerPanel.add(whiteTimerLabel, BorderLayout.CENTER);
-        blackTimerPanel = new JPanel(new BorderLayout());
-        blackTimerPanel.setBorder(BorderFactory.createTitledBorder("Black Timer"));
-        blackTimerPanel.setOpaque(false);
-        blackTimerLabel = new JLabel("00:00");
-        blackTimerLabel.setForeground(Color.WHITE);
-        blackTimerPanel.add(blackTimerLabel, BorderLayout.CENTER);
-        
         infoPanel.add(statusLabel);
         infoPanel.add(turnLabel);
-        infoPanel.add(whiteTimerPanel);
-        infoPanel.add(blackTimerPanel);
 
         // Move history table (two columns: White | Black)
         tableModel = new DefaultTableModel(new Object[] { "White", "Black" }, 0) {
@@ -168,21 +147,4 @@ public class StatusPanel extends JPanel {
         });
     }
 
-    public void updateTimers(int whiteSeconds, int blackSeconds) {
-        SwingUtilities.invokeLater(() -> {
-            // If you have GameManager.formatSecondsAsClock(...) you can use it.
-            // Otherwise use simple mm:ss formatting:
-            String whiteText = formatSecondsAsClock(whiteSeconds);
-            String blackText = formatSecondsAsClock(blackSeconds);
-            whiteTimerLabel.setText(whiteText);
-            blackTimerLabel.setText(blackText);
-        });
-    }
-
-    private String formatSecondsAsClock(int seconds) {
-        int s = Math.max(0, seconds);
-        int m = s / 60;
-        int sec = s % 60;
-        return String.format("%02d:%02d", m, sec);
-    }
 }

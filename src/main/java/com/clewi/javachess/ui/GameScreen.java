@@ -19,6 +19,10 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
     private Timer swingClockTimer;
     private ActionListener backToHomeListener;
     
+    // Individual timer panels
+    private JLabel whiteTimerLabel;
+    private JLabel blackTimerLabel;
+    
     public GameScreen() {
         gameManager = new GameManager();
         gameManager.initClocks(300, 2);
@@ -32,8 +36,8 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         swingClockTimer = new Timer(1000, e -> {
             if (gameManager.isClockEnabled()) {
                 boolean timeout = gameManager.tick(); // decrements active clock
-                // update the labels in StatusPanel
-                statusPanel.updateTimers(gameManager.getWhiteSecondsRemaining(), gameManager.getBlackSecondsRemaining());
+                // update the timer labels
+                updateTimerLabels();
                 if (timeout) {
                     // stop timer when timeout occurs (gameManager.tick() should have updated game state)
                     swingClockTimer.stop();
@@ -41,7 +45,7 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
                 }
             } else {
                 // still update labels (shows --:--)
-                statusPanel.updateTimers(gameManager.getWhiteSecondsRemaining(), gameManager.getBlackSecondsRemaining());
+                updateTimerLabels();
             }
         });
         swingClockTimer.start();
@@ -106,7 +110,13 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         boardPanel = new BoardPanel(gameManager);
         statusPanel = new StatusPanel(this);  // Pass reference to this GUI
         
-        mainPanel.add(boardPanel, BorderLayout.CENTER);
+        // Create timer panels
+        createTimerPanels();
+        
+        // Create board area with timers positioned around it
+        JPanel boardArea = createBoardAreaWithTimers();
+        
+        mainPanel.add(boardArea, BorderLayout.CENTER);
         mainPanel.add(statusPanel, BorderLayout.EAST);
         
         // Add the main panel to the frame
@@ -163,7 +173,8 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         Board.setMoveHistory(new ArrayList<>());
         statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory());
         
-        // Restart the timer
+        // Update timer displays and restart the timer
+        updateTimerLabels();
         if (swingClockTimer != null) {
             swingClockTimer.start();
         }
@@ -258,5 +269,67 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
     
     public void hideScreen() {
         setVisible(false);
+    }
+    
+    private void createTimerPanels() {
+        // Create white timer (top-left) - Black pieces start at top
+        whiteTimerLabel = new JLabel("05:00", SwingConstants.CENTER);
+        whiteTimerLabel.setFont(new Font("Courier New", Font.BOLD, 18));
+        whiteTimerLabel.setForeground(Color.BLACK);
+        whiteTimerLabel.setBackground(new Color(255,255,255));
+        whiteTimerLabel.setOpaque(true);
+
+        // Create black timer (bottom-right) - White pieces start at bottom
+        blackTimerLabel = new JLabel("05:00", SwingConstants.CENTER);
+        blackTimerLabel.setFont(new Font("Courier New", Font.BOLD, 18));
+        blackTimerLabel.setForeground(Color.WHITE);
+        blackTimerLabel.setBackground(new Color(38,36,33));
+        blackTimerLabel.setOpaque(true);
+    }
+    
+    private JPanel createBoardAreaWithTimers() {
+        JPanel boardArea = new JPanel();
+        boardArea.setLayout(null); // Use absolute positioning
+        boardArea.setOpaque(false);
+        
+        // Calculate board size
+        int boardSize = 65 * 8; // SQUARE_SIZE * 8
+        
+        // Position the board in the center
+        int boardX = 100;
+        int boardY = 60;
+        boardPanel.setBounds(boardX, boardY, boardSize, boardSize);
+        
+        // Position white timer bottom-right of board
+        whiteTimerLabel.setBounds(boardX + boardSize - 100, boardY + boardSize + 10, 100, 30);
+        
+        // Position black timer top-right of board
+        blackTimerLabel.setBounds(boardX + boardSize - 100, boardY - 40, 100, 30);
+        
+        // Set preferred size for the container
+        boardArea.setPreferredSize(new Dimension(boardSize + 200, boardSize + 120));
+        
+        // Add components
+        boardArea.add(boardPanel);
+        boardArea.add(whiteTimerLabel);
+        boardArea.add(blackTimerLabel);
+        
+        return boardArea;
+    }
+    
+    private void updateTimerLabels() {
+        SwingUtilities.invokeLater(() -> {
+            String whiteText = formatSecondsAsClock(gameManager.getWhiteSecondsRemaining());
+            String blackText = formatSecondsAsClock(gameManager.getBlackSecondsRemaining());
+            whiteTimerLabel.setText(whiteText);
+            blackTimerLabel.setText(blackText);
+        });
+    }
+    
+    private String formatSecondsAsClock(int seconds) {
+        int s = Math.max(0, seconds);
+        int m = s / 60;
+        int sec = s % 60;
+        return String.format("%02d:%02d", m, sec);
     }
 }
