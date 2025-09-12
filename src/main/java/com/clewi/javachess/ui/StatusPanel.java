@@ -25,26 +25,38 @@ public class StatusPanel extends JPanel {
         setPreferredSize(new Dimension(200, 400));
         setLayout(new BorderLayout());
         
+        // Make the main panel transparent so gradient shows through
+        setOpaque(false);
+        
         // Title panel
         JPanel titlePanel = new JPanel();
+        titlePanel.setOpaque(false);
         JLabel titleLabel = new JLabel("Chess Game");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        titleLabel.setForeground(Color.WHITE); // Make text visible on dark background
         titlePanel.add(titleLabel);
         
         // Status info panel
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new GridLayout(5, 1, 5, 5));
+        infoPanel.setOpaque(false);
         
         statusLabel = new JLabel("Game in progress");
+        statusLabel.setForeground(Color.WHITE); // Make text visible on dark background
         turnLabel = new JLabel("White's turn");
+        turnLabel.setForeground(Color.WHITE); // Make text visible on dark background
 
         whiteTimerPanel = new JPanel(new BorderLayout());
         whiteTimerPanel.setBorder(BorderFactory.createTitledBorder("White Timer"));
+        whiteTimerPanel.setOpaque(false);
         whiteTimerLabel = new JLabel("00:00");
+        whiteTimerLabel.setForeground(Color.WHITE);
         whiteTimerPanel.add(whiteTimerLabel, BorderLayout.CENTER);
         blackTimerPanel = new JPanel(new BorderLayout());
         blackTimerPanel.setBorder(BorderFactory.createTitledBorder("Black Timer"));
+        blackTimerPanel.setOpaque(false);
         blackTimerLabel = new JLabel("00:00");
+        blackTimerLabel.setForeground(Color.WHITE);
         blackTimerPanel.add(blackTimerLabel, BorderLayout.CENTER);
         
         infoPanel.add(statusLabel);
@@ -70,6 +82,7 @@ public class StatusPanel extends JPanel {
         // Button panel
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new GridLayout(4, 1, 5, 5));
+        buttonPanel.setOpaque(false);
         
         newGameButton = new JButton("New Game");
         JButton saveButton = new JButton("Save Game");

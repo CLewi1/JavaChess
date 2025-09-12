@@ -30,12 +30,7 @@ public class HomeScreen extends JFrame {
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
                 
-                // Create gradient background
-                GradientPaint gradient = new GradientPaint(
-                    0, 0, new Color(45, 45, 65),
-                    0, getHeight(), new Color(25, 25, 45)
-                );
-                g2d.setPaint(gradient);
+                g2d.setPaint(new Color(48,46,43));
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         };

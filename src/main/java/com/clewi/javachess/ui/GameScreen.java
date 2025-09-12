@@ -53,8 +53,21 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
     
     private void initializeComponents() {
         setTitle("Chess Game");
-        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // Don't exit, just hide
-        setLayout(new BorderLayout(10, 10));
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        
+        // Create main panel with gradient background
+        JPanel mainPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
+                g2d.setPaint(new Color(48,46,43));
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        mainPanel.setLayout(new BorderLayout(10, 10));
         
         // Add a menu bar with a back button
         JMenuBar menuBar = new JMenuBar();
@@ -93,8 +106,11 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         boardPanel = new BoardPanel(gameManager);
         statusPanel = new StatusPanel(this);  // Pass reference to this GUI
         
-        add(boardPanel, BorderLayout.CENTER);
-        add(statusPanel, BorderLayout.EAST);
+        mainPanel.add(boardPanel, BorderLayout.CENTER);
+        mainPanel.add(statusPanel, BorderLayout.EAST);
+        
+        // Add the main panel to the frame
+        add(mainPanel, BorderLayout.CENTER);
         
         pack();
         setLocationRelativeTo(null);

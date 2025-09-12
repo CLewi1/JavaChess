@@ -32,6 +32,9 @@ public class BoardPanel extends JPanel {
         loadImages();
         setFocusable(true);
         requestFocusInWindow();
+        
+        // Make the panel transparent so gradient shows through
+        setOpaque(false);
     }
 
     private void loadImages() {
@@ -57,7 +60,7 @@ public class BoardPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         
-        // Draw the board squares
+        // Draw the board squares first
         drawBoard(g);
         
         // Draw the selected square highlight if any
@@ -70,6 +73,38 @@ public class BoardPanel extends JPanel {
         
         // Draw the pieces
         drawPieces(g);
+        
+        // Draw coordinates last so they appear on top
+        drawCoordinates(g);
+    }
+
+    private void drawCoordinates(Graphics g) {
+        g.setFont(new Font("Arial", Font.BOLD, 11));
+        
+        // Draw file letters (a-h) in bottom right corner of each file's bottom square
+        String[] files = {"a", "b", "c", "d", "e", "f", "g", "h"};
+        for (int i = 0; i < 8; i++) {
+            // Bottom squares (row 7)
+            boolean isLightSquare = (7 + i) % 2 == 0;
+            // Use opposite color for contrast
+            g.setColor(isLightSquare ? DARK_SQUARE : LIGHT_SQUARE);
+            
+            int x = i * SQUARE_SIZE + SQUARE_SIZE - 12; // Bottom right corner
+            int y = 7 * SQUARE_SIZE + SQUARE_SIZE - 5;  // Bottom of square
+            g.drawString(files[i], x, y);
+        }
+        
+        // Draw rank numbers (1-8) in top left corner of each rank's leftmost square
+        for (int i = 0; i < 8; i++) {
+            // Leftmost squares (column 0)
+            boolean isLightSquare = ((7 - i) + 0) % 2 == 0;
+            // Use opposite color for contrast
+            g.setColor(isLightSquare ? DARK_SQUARE : LIGHT_SQUARE);
+            
+            int x = 3; // Top left corner with small padding
+            int y = (7 - i) * SQUARE_SIZE + 12; // Top of square with padding
+            g.drawString(String.valueOf(i + 1), x, y);
+        }
     }
 
     private void drawBoard(Graphics g) {
