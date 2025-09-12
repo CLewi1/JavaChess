@@ -8,17 +8,18 @@ import com.clewi.javachess.util.DebugUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 
-public class ChessGUI implements GameStateObserver, GameController {
-    private JFrame mainFrame;
+public class GameScreen extends JFrame implements GameStateObserver, GameController {
     private BoardPanel boardPanel;
     private StatusPanel statusPanel;
     private GameManager gameManager;
     private Timer swingClockTimer;
+    private ActionListener backToHomeListener;
     
-    public ChessGUI() {
+    public GameScreen() {
         gameManager = new GameManager();
         gameManager.initClocks(300, 2);
         DebugUtils.logImportant("Clocks initialized to 5 minutes with 2 second increment.");
@@ -28,7 +29,7 @@ public class ChessGUI implements GameStateObserver, GameController {
         
         initializeComponents();
 
-            swingClockTimer = new Timer(1000, e -> {
+        swingClockTimer = new Timer(1000, e -> {
             if (gameManager.isClockEnabled()) {
                 boolean timeout = gameManager.tick(); // decrements active clock
                 // update the labels in StatusPanel
@@ -46,20 +47,57 @@ public class ChessGUI implements GameStateObserver, GameController {
         swingClockTimer.start();
     }
     
+    public void setBackToHomeListener(ActionListener listener) {
+        this.backToHomeListener = listener;
+    }
+    
     private void initializeComponents() {
-        mainFrame = new JFrame("Chess Game");
-        mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        mainFrame.setLayout(new BorderLayout(10, 10));
+        setTitle("Chess Game");
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // Don't exit, just hide
+        setLayout(new BorderLayout(10, 10));
+        
+        // Add a menu bar with a back button
+        JMenuBar menuBar = new JMenuBar();
+        JMenu gameMenu = new JMenu("Game");
+        
+        JMenuItem backToHome = new JMenuItem("Back to Home");
+        backToHome.addActionListener(e -> {
+            if (backToHomeListener != null) {
+                // Stop the clock timer when going back to home
+                if (swingClockTimer != null) {
+                    swingClockTimer.stop();
+                }
+                backToHomeListener.actionPerformed(e);
+            }
+        });
+        
+        JMenuItem newGame = new JMenuItem("New Game");
+        newGame.addActionListener(e -> startNewGame());
+        
+        JMenuItem saveGame = new JMenuItem("Save Game");
+        saveGame.addActionListener(e -> saveGame());
+        
+        JMenuItem loadGame = new JMenuItem("Load Game");
+        loadGame.addActionListener(e -> loadGame());
+        
+        gameMenu.add(backToHome);
+        gameMenu.addSeparator();
+        gameMenu.add(newGame);
+        gameMenu.addSeparator();
+        gameMenu.add(saveGame);
+        gameMenu.add(loadGame);
+        
+        menuBar.add(gameMenu);
+        setJMenuBar(menuBar);
         
         boardPanel = new BoardPanel(gameManager);
         statusPanel = new StatusPanel(this);  // Pass reference to this GUI
         
-        mainFrame.add(boardPanel, BorderLayout.CENTER);
-        mainFrame.add(statusPanel, BorderLayout.EAST);
+        add(boardPanel, BorderLayout.CENTER);
+        add(statusPanel, BorderLayout.EAST);
         
-        mainFrame.pack();
-        mainFrame.setLocationRelativeTo(null);
-        mainFrame.setVisible(true);
+        pack();
+        setLocationRelativeTo(null);
     }
     
     @Override
@@ -78,25 +116,24 @@ public class ChessGUI implements GameStateObserver, GameController {
             SwingUtilities.invokeLater(() -> showStalemateDialog());
         } else if (state == GameState.DRAW) {
             SwingUtilities.invokeLater(() -> {
-                JOptionPane.showMessageDialog(mainFrame, "The game is a draw.", "Game Over", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "The game is a draw.", "Game Over", JOptionPane.INFORMATION_MESSAGE);
             });
         } else if (state == GameState.TIMEOUT) {
             Player winner = event.getSource().getOppositePlayer();
             SwingUtilities.invokeLater(() -> {
                 String message = "Time out! " + (winner.isWhite() ? "White" : "Black") + " wins on time!";
-                JOptionPane.showMessageDialog(mainFrame, message, "Game Over", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, message, "Game Over", JOptionPane.INFORMATION_MESSAGE);
             });
         }
-
     }
     
     private void showCheckmateDialog(Player winner) {
         String message = "Checkmate! " + (winner.isWhite() ? "White" : "Black") + " wins!";
-        JOptionPane.showMessageDialog(mainFrame, message, "Game Over", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, message, "Game Over", JOptionPane.INFORMATION_MESSAGE);
     }
     
     private void showStalemateDialog() {
-        JOptionPane.showMessageDialog(mainFrame, "Stalemate! The game is a draw.", "Game Over", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Stalemate! The game is a draw.", "Game Over", JOptionPane.INFORMATION_MESSAGE);
     }
     
     public void startNewGame() {
@@ -109,6 +146,11 @@ public class ChessGUI implements GameStateObserver, GameController {
         // Reset move history display
         Board.setMoveHistory(new ArrayList<>());
         statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory());
+        
+        // Restart the timer
+        if (swingClockTimer != null) {
+            swingClockTimer.start();
+        }
     }
     
     public void saveGame() {
@@ -117,7 +159,7 @@ public class ChessGUI implements GameStateObserver, GameController {
         fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
                 "Chess Game Files (*.chess)", "chess"));
         
-        int userSelection = fileChooser.showSaveDialog(mainFrame);
+        int userSelection = fileChooser.showSaveDialog(this);
         
         if (userSelection == JFileChooser.APPROVE_OPTION) {
             File fileToSave = fileChooser.getSelectedFile();
@@ -129,7 +171,7 @@ public class ChessGUI implements GameStateObserver, GameController {
             
             // Confirm if file exists
             if (fileToSave.exists()) {
-                int response = JOptionPane.showConfirmDialog(mainFrame,
+                int response = JOptionPane.showConfirmDialog(this,
                         "The file already exists. Do you want to overwrite it?", 
                         "Confirm Overwrite", JOptionPane.YES_NO_OPTION);
                 if (response != JOptionPane.YES_OPTION) {
@@ -140,11 +182,11 @@ public class ChessGUI implements GameStateObserver, GameController {
             // Save the game
             boolean success = gameManager.saveGame(fileToSave);
             if (success) {
-                JOptionPane.showMessageDialog(mainFrame, 
+                JOptionPane.showMessageDialog(this, 
                         "Game saved successfully", 
                         "Save Game", JOptionPane.INFORMATION_MESSAGE);
             } else {
-                JOptionPane.showMessageDialog(mainFrame, 
+                JOptionPane.showMessageDialog(this, 
                         "Failed to save game", 
                         "Save Game", JOptionPane.ERROR_MESSAGE);
             }
@@ -157,7 +199,7 @@ public class ChessGUI implements GameStateObserver, GameController {
         fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
                 "Chess Game Files (*.chess)", "chess"));
         
-        int userSelection = fileChooser.showOpenDialog(mainFrame);
+        int userSelection = fileChooser.showOpenDialog(this);
         
         if (userSelection == JFileChooser.APPROVE_OPTION) {
             File fileToLoad = fileChooser.getSelectedFile();
@@ -169,11 +211,11 @@ public class ChessGUI implements GameStateObserver, GameController {
                 statusPanel.updateStatus(gameManager.getGameState());
                 statusPanel.setTurn(gameManager.getCurrentPlayer().isWhite());
                 statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory()); // Update move history display
-                JOptionPane.showMessageDialog(mainFrame, 
+                JOptionPane.showMessageDialog(this, 
                         "Game loaded successfully", 
                         "Load Game", JOptionPane.INFORMATION_MESSAGE);
             } else {
-                JOptionPane.showMessageDialog(mainFrame, 
+                JOptionPane.showMessageDialog(this, 
                         "Failed to load game", 
                         "Load Game", JOptionPane.ERROR_MESSAGE);
             }
@@ -188,9 +230,17 @@ public class ChessGUI implements GameStateObserver, GameController {
             statusPanel.setTurn(gameManager.getCurrentPlayer().isWhite());
             statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory());
         } else {
-            JOptionPane.showMessageDialog(mainFrame, 
+            JOptionPane.showMessageDialog(this, 
                     "No moves to undo", 
                     "Undo Move", JOptionPane.INFORMATION_MESSAGE);
         }
+    }
+    
+    public void showScreen() {
+        setVisible(true);
+    }
+    
+    public void hideScreen() {
+        setVisible(false);
     }
 }

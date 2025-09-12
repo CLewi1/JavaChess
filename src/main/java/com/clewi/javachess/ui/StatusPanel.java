@@ -11,7 +11,7 @@ import java.util.List;
 public class StatusPanel extends JPanel {
     private JLabel statusLabel;
     private JLabel turnLabel;
-    private ChessGUI parentGUI;
+    private GameController gameController;
     private JButton newGameButton;
     private DefaultTableModel tableModel;
     private JTable moveTable;
@@ -20,8 +20,8 @@ public class StatusPanel extends JPanel {
     private JPanel blackTimerPanel;
     private JLabel blackTimerLabel;
 
-    public StatusPanel(ChessGUI parent) {
-        this.parentGUI = parent;
+    public StatusPanel(GameController gameController) {
+        this.gameController = gameController;
         setPreferredSize(new Dimension(200, 400));
         setLayout(new BorderLayout());
         
@@ -76,10 +76,10 @@ public class StatusPanel extends JPanel {
         JButton loadButton = new JButton("Load Game");
         JButton undoButton = new JButton("Undo Move");
 
-        newGameButton.addActionListener(e -> parentGUI.startNewGame());
-        saveButton.addActionListener(e -> parentGUI.saveGame());
-        loadButton.addActionListener(e -> parentGUI.loadGame());
-        undoButton.addActionListener(e -> parentGUI.undoMove());
+        newGameButton.addActionListener(e -> gameController.startNewGame());
+        saveButton.addActionListener(e -> gameController.saveGame());
+        loadButton.addActionListener(e -> gameController.loadGame());
+        undoButton.addActionListener(e -> gameController.undoMove());
         
         buttonPanel.add(newGameButton);
         buttonPanel.add(saveButton);
