@@ -23,6 +23,12 @@ public class MoveData implements Serializable {
     private String promotedPieceType;
     private Boolean wasPieceHasMoved;
     
+    // Clock metadata captured at the start of the move (used to restore clocks on undo)
+    private Integer whiteSecondsBefore;
+    private Integer blackSecondsBefore;
+    private Boolean whiteClockActiveBefore;
+    private Boolean clocksRunningBefore;
+    
     public MoveData(Point source, Point destination, String pieceType, boolean isWhite, 
                    MoveType moveType, String promotionChoice) {
         this.source = source;
@@ -60,6 +66,18 @@ public class MoveData implements Serializable {
     public void setWasPieceHasMoved(Boolean wasPieceHasMoved) { 
         this.wasPieceHasMoved = wasPieceHasMoved; 
     }
+
+    public Integer getWhiteSecondsBefore() { return whiteSecondsBefore; }
+    public void setWhiteSecondsBefore(Integer whiteSecondsBefore) { this.whiteSecondsBefore = whiteSecondsBefore; }
+
+    public Integer getBlackSecondsBefore() { return blackSecondsBefore; }
+    public void setBlackSecondsBefore(Integer blackSecondsBefore) { this.blackSecondsBefore = blackSecondsBefore; }
+
+    public Boolean getWhiteClockActiveBefore() { return whiteClockActiveBefore; }
+    public void setWhiteClockActiveBefore(Boolean whiteClockActiveBefore) { this.whiteClockActiveBefore = whiteClockActiveBefore; }
+
+    public Boolean getClocksRunningBefore() { return clocksRunningBefore; }
+    public void setClocksRunningBefore(Boolean clocksRunningBefore) { this.clocksRunningBefore = clocksRunningBefore; }
     
     @Override
     public String toString() {

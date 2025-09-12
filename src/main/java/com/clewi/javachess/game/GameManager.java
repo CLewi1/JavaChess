@@ -421,7 +421,11 @@ public class GameManager {
             }
 
             // No per-move clock metadata is stored in MoveData currently.
-            // Global clock restoration is handled separately when loading the save.
+            // Restore per-move clock metadata (if available) so undo can reinstate clocks after load
+            if (md.getWhiteSecondsBefore() != null) m.setWhiteSecondsBefore(md.getWhiteSecondsBefore());
+            if (md.getBlackSecondsBefore() != null) m.setBlackSecondsBefore(md.getBlackSecondsBefore());
+            if (md.getWhiteClockActiveBefore() != null) m.setWhiteClockActiveBefore(md.getWhiteClockActiveBefore());
+            if (md.getClocksRunningBefore() != null) m.setClocksRunningBefore(md.getClocksRunningBefore());
 
             reconstructed.add(m);
         }
@@ -516,6 +520,11 @@ public class GameManager {
             moveData.setPromotedPieceType(move.getPromotedPiece().getClass().getSimpleName());
         }
         moveData.setWasPieceHasMoved(move.wasPieceHasMoved());
+        // Store clock metadata for undo restoration
+        moveData.setWhiteSecondsBefore(move.getWhiteSecondsBefore());
+        moveData.setBlackSecondsBefore(move.getBlackSecondsBefore());
+        moveData.setWhiteClockActiveBefore(move.getWhiteClockActiveBefore());
+        moveData.setClocksRunningBefore(move.getClocksRunningBefore());
         
         return moveData;
     }
