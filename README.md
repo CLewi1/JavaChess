@@ -76,8 +76,8 @@ javachess/
     - [x] Promotion UI
     - [x] Undo / take-back
     - [x] Timer / clocks
+    - [x] Undo moves after load
 - Planned:
-    - [ ] Undo moves after load
     - [ ] AI Opponent
     - [ ] Redesign UI
 

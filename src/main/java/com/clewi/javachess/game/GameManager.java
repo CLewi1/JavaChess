@@ -324,8 +324,9 @@ public class GameManager {
         this.selectedPiece = null;
         this.moveValidator = new MoveValidator(board);
         
-        // Clear the actual move history (for undo functionality - pieces are in final positions)
-        Board.setMoveHistory(new ArrayList<>());
+        // Reconstruct actual Move objects so undo works after loading.
+        List<Move> reconstructed = reconstructMovesFromData(saveData.getMoveHistory());
+        Board.setMoveHistory(reconstructed);
         
         // Convert saved MoveData to displayable moves for the UI
         this.loadedMoveHistory = new ArrayList<>();
@@ -347,6 +348,89 @@ public class GameManager {
             this.whiteSecondsAtTurnStart = this.whiteSecondsRemaining;
             this.blackSecondsAtTurnStart = this.blackSecondsRemaining;
         }
+    }
+
+    /**
+     * Reconstruct Move objects from saved MoveData so undo/board history works after loading.
+     * Best-effort mapping: prefers the piece found at the destination; falls back to searching
+     * for a piece of the same type and color on the board.
+     */
+    private List<Move> reconstructMovesFromData(List<MoveData> moveDataList) {
+        List<Move> reconstructed = new ArrayList<>();
+        if (moveDataList == null) return reconstructed;
+
+        for (MoveData md : moveDataList) {
+            Point src = md.getSource();
+            Point dst = md.getDestination();
+
+            // Try to find the moving piece at the destination (final board state).
+            Piece movingPiece = null;
+            if (dst != null) {
+                movingPiece = board.getPiece(dst.x, dst.y);
+            }
+
+            // Fallback: find a piece of the same type and color on the board.
+            if (movingPiece == null && md.getPieceType() != null) {
+                boolean isWhite = md.isWhite();
+                for (Piece p : board.getPieces(isWhite)) {
+                    if (p.getClass().getSimpleName().equals(md.getPieceType())) {
+                        movingPiece = p;
+                        break;
+                    }
+                }
+            }
+
+            // If we still couldn't find a piece, log and skip this move (defensive).
+            if (movingPiece == null) {
+                DebugUtils.logImportant("Could not locate moving piece for move " + md + " — skipping reconstruction entry.");
+                continue;
+            }
+
+            // Construct Move using correct constructor ordering: (source, destination, piece, moveType, promotionChoice)
+            Move m = new Move(src, dst, movingPiece, md.getMoveType(), md.getPromotionChoice());
+            m.setWasPieceHasMoved(md.wasPieceHasMoved());
+
+            // Attach captured piece by matching class name in captured lists
+            if (md.getCapturedPieceType() != null) {
+                List<Piece> capList = movingPiece.isWhite() ? blackPlayer.getCapturedPieces() : whitePlayer.getCapturedPieces();
+                for (Piece p : capList) {
+                    if (p.getClass().getSimpleName().equals(md.getCapturedPieceType())) {
+                        m.setCapturedPiece(p);
+                        break;
+                    }
+                }
+            }
+
+            // Attach en-passant captured piece if present
+            if (md.getEnPassantCapturedPieceType() != null) {
+                List<Piece> capList = movingPiece.isWhite() ? blackPlayer.getCapturedPieces() : whitePlayer.getCapturedPieces();
+                for (Piece p : capList) {
+                    if (p.getClass().getSimpleName().equals(md.getEnPassantCapturedPieceType())) {
+                        m.setEnPassantCapturedPiece(p);
+                        break;
+                    }
+                }
+            }
+
+            // Attach promoted piece (promoted piece should be on board at dst)
+            if (md.getPromotedPieceType() != null && dst != null) {
+                Piece promoted = board.getPiece(dst.x, dst.y);
+                if (promoted != null && promoted.getClass().getSimpleName().equals(md.getPromotedPieceType())) {
+                    m.setPromotedPiece(promoted);
+                }
+            }
+
+            // No per-move clock metadata is stored in MoveData currently.
+            // Restore per-move clock metadata (if available) so undo can reinstate clocks after load
+            if (md.getWhiteSecondsBefore() != null) m.setWhiteSecondsBefore(md.getWhiteSecondsBefore());
+            if (md.getBlackSecondsBefore() != null) m.setBlackSecondsBefore(md.getBlackSecondsBefore());
+            if (md.getWhiteClockActiveBefore() != null) m.setWhiteClockActiveBefore(md.getWhiteClockActiveBefore());
+            if (md.getClocksRunningBefore() != null) m.setClocksRunningBefore(md.getClocksRunningBefore());
+
+            reconstructed.add(m);
+        }
+
+        return reconstructed;
     }
 
     public boolean undoMove() {
@@ -436,6 +520,11 @@ public class GameManager {
             moveData.setPromotedPieceType(move.getPromotedPiece().getClass().getSimpleName());
         }
         moveData.setWasPieceHasMoved(move.wasPieceHasMoved());
+        // Store clock metadata for undo restoration
+        moveData.setWhiteSecondsBefore(move.getWhiteSecondsBefore());
+        moveData.setBlackSecondsBefore(move.getBlackSecondsBefore());
+        moveData.setWhiteClockActiveBefore(move.getWhiteClockActiveBefore());
+        moveData.setClocksRunningBefore(move.getClocksRunningBefore());
         
         return moveData;
     }
@@ -549,6 +638,7 @@ public class GameManager {
     public boolean areClocksRunning() {
         return clocksRunning;
     }
+
 
     
 
