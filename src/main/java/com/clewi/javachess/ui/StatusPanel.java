@@ -11,7 +11,6 @@ import java.util.List;
 public class StatusPanel extends JPanel {
     private JLabel statusLabel;
     private JLabel turnLabel;
-    private JButton newGameButton;
     private DefaultTableModel tableModel;
     private JTable moveTable;
 
@@ -19,8 +18,8 @@ public class StatusPanel extends JPanel {
         setPreferredSize(new Dimension(200, 400));
         setLayout(new BorderLayout());
         
-        // Make the main panel transparent so gradient shows through
-        setOpaque(false);
+        setBackground(new Color(38,36,33));
+        setOpaque(true);
         
         // Title panel
         JPanel titlePanel = new JPanel();
@@ -63,19 +62,10 @@ public class StatusPanel extends JPanel {
         buttonPanel.setLayout(new GridLayout(4, 1, 5, 5));
         buttonPanel.setOpaque(false);
         
-        newGameButton = new JButton("New Game");
-        JButton saveButton = new JButton("Save Game");
-        JButton loadButton = new JButton("Load Game");
         JButton undoButton = new JButton("Undo Move");
 
-        newGameButton.addActionListener(e -> gameController.startNewGame());
-        saveButton.addActionListener(e -> gameController.saveGame());
-        loadButton.addActionListener(e -> gameController.loadGame());
         undoButton.addActionListener(e -> gameController.undoMove());
         
-        buttonPanel.add(newGameButton);
-        buttonPanel.add(saveButton);
-        buttonPanel.add(loadButton);
         buttonPanel.add(undoButton);
 
         // Add all panels to the status panel

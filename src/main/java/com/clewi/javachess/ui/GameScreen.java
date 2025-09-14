@@ -116,8 +116,10 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         // Create board area with timers positioned around it
         JPanel boardArea = createBoardAreaWithTimers();
         
-        mainPanel.add(boardArea, BorderLayout.CENTER);
-        mainPanel.add(statusPanel, BorderLayout.EAST);
+        // Create a centered container that holds both board area and status panel
+        JPanel gameContainer = createCenteredGameContainer(boardArea);
+        
+        mainPanel.add(gameContainer, BorderLayout.CENTER);
         
         // Add the main panel to the frame
         add(mainPanel, BorderLayout.CENTER);
@@ -296,7 +298,7 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         int boardSize = 65 * 8; // SQUARE_SIZE * 8
         
         // Position the board in the center
-        int boardX = 100;
+        int boardX = 20;
         int boardY = 60;
         boardPanel.setBounds(boardX, boardY, boardSize, boardSize);
         
@@ -307,7 +309,7 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         blackTimerLabel.setBounds(boardX + boardSize - 100, boardY - 40, 100, 30);
         
         // Set preferred size for the container
-        boardArea.setPreferredSize(new Dimension(boardSize + 200, boardSize + 120));
+        boardArea.setPreferredSize(new Dimension(boardSize + 40, boardSize + 120));
         
         // Add components
         boardArea.add(boardPanel);
@@ -315,6 +317,22 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         boardArea.add(blackTimerLabel);
         
         return boardArea;
+    }
+    
+    private JPanel createCenteredGameContainer(JPanel boardArea) {
+        JPanel gameContainer = new JPanel();
+        gameContainer.setOpaque(false);
+        gameContainer.setLayout(new FlowLayout(FlowLayout.CENTER, 30, 0)); // 30px spacing between components
+        
+        // Set status panel height to match board height and maintain its width
+        int boardHeight = 65 * 8; // SQUARE_SIZE * 8 (chess board height)
+        statusPanel.setPreferredSize(new Dimension(200, boardHeight)); // Keep width 200, height = board height
+        
+        // Add components with proper spacing
+        gameContainer.add(boardArea);
+        gameContainer.add(statusPanel);
+        
+        return gameContainer;
     }
     
     private void updateTimerLabels() {
