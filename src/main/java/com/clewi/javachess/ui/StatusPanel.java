@@ -11,6 +11,7 @@ import java.util.List;
 public class StatusPanel extends JPanel {
     private JLabel statusLabel;
     private JLabel turnLabel;
+    private JLabel titleLabel;
     private DefaultTableModel tableModel;
     private JTable moveTable;
 
@@ -21,13 +22,13 @@ public class StatusPanel extends JPanel {
         setBackground(new Color(38,36,33));
         setOpaque(true);
         
-        // Title panel
-        JPanel titlePanel = new JPanel();
-        titlePanel.setOpaque(false);
-        JLabel titleLabel = new JLabel("Chess Game");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setForeground(Color.WHITE); // Make text visible on dark background
-        titlePanel.add(titleLabel);
+    // Title panel
+    JPanel titlePanel = new JPanel();
+    titlePanel.setOpaque(false);
+    titleLabel = new JLabel("Chess Game");
+    titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+    titleLabel.setForeground(Color.WHITE); // Make text visible on dark background
+    titlePanel.add(titleLabel);
         
         // Status info panel
         JPanel infoPanel = new JPanel();
@@ -75,6 +76,19 @@ public class StatusPanel extends JPanel {
 
         
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+    }
+
+    /**
+     * Update the title to reflect the selected game mode.
+     * Accepted values for mode are: "PVP" (player vs player) and "PVAI" (player vs AI).
+     * Any other value will default to "Player vs. Player".
+     */
+    public void setGameModeTitle(String mode) {
+        if (mode != null && mode.equals("PVAI")) {
+            titleLabel.setText("Player vs. AI");
+        } else {
+            titleLabel.setText("Player vs. Player");
+        }
     }
     
     public void updateStatus(GameState state) {

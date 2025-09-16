@@ -16,6 +16,7 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
     private BoardPanel boardPanel;
     private StatusPanel statusPanel;
     private GameManager gameManager;
+    private String gameMode = "PVP"; // default to player vs player
     private Timer swingClockTimer;
     private ActionListener backToHomeListener;
     
@@ -130,8 +131,10 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         menuBar.add(viewMenu);
         setJMenuBar(menuBar);
         
-        boardPanel = new BoardPanel(gameManager);
-        statusPanel = new StatusPanel(this);  // Pass reference to this GUI
+    boardPanel = new BoardPanel(gameManager);
+    statusPanel = new StatusPanel(this);  // Pass reference to this GUI
+    // Initialize title based on current game mode
+    statusPanel.setGameModeTitle(gameMode);
         
         // Create timer panels
         createTimerPanels();
@@ -202,6 +205,17 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         updateTimerLabels();
         if (swingClockTimer != null) {
             swingClockTimer.start();
+        }
+    }
+
+    /**
+     * Set the current game mode (e.g. "PVP" or "PVAI") and update UI labels accordingly.
+     */
+    public void setGameMode(String mode) {
+        if (mode == null) return;
+        this.gameMode = mode;
+        if (statusPanel != null) {
+            statusPanel.setGameModeTitle(mode);
         }
     }
     
