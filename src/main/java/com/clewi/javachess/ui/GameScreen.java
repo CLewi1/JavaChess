@@ -24,6 +24,7 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
     private JLabel blackTimerLabel;
     
     public GameScreen() {
+        setMinimumSize(new Dimension(900, 700));
         gameManager = new GameManager();
         gameManager.initClocks(300, 2);
         DebugUtils.logImportant("Clocks initialized to 5 minutes with 2 second increment.");
@@ -103,8 +104,30 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         gameMenu.addSeparator();
         gameMenu.add(saveGame);
         gameMenu.add(loadGame);
+
+        JMenu viewMenu = new JMenu("View");
+
+        // zoom size
+        JMenuItem zoomIn = new JMenuItem("Zoom In");
+        zoomIn.addActionListener(e -> {
+            //boardPanel.setSquareSize(boardPanel.getSquareSize() + 5);
+            boardPanel.revalidate();
+            boardPanel.repaint();
+        });
+
+        JMenuItem zoomOut = new JMenuItem("Zoom Out");
+        zoomOut.addActionListener(e -> {
+            //boardPanel.setSquareSize(Math.max(20, boardPanel.getSquareSize() - 5));
+            boardPanel.revalidate();
+            boardPanel.repaint();
+        });
+
+        viewMenu.add(zoomIn);
+        viewMenu.add(zoomOut);
+
         
         menuBar.add(gameMenu);
+        menuBar.add(viewMenu);
         setJMenuBar(menuBar);
         
         boardPanel = new BoardPanel(gameManager);

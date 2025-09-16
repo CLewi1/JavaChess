@@ -19,7 +19,7 @@ public class HomeScreen extends JFrame {
     private void initializeComponents() {
         setTitle("Chess Game");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 600);
+        setMinimumSize(new Dimension(900, 700));
         setLocationRelativeTo(null);
         
         // Create main panel with gradient background
