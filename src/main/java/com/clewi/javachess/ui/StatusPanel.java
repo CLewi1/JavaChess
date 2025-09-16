@@ -15,6 +15,7 @@ public class StatusPanel extends JPanel {
     private JLabel titleLabel;
     private DefaultTableModel tableModel;
     private JTable moveTable;
+    private JTextArea messageArea;
 
     public StatusPanel(GameController gameController) {
         setPreferredSize(new Dimension(200, 400));
@@ -26,15 +27,15 @@ public class StatusPanel extends JPanel {
         // Title panel
         JPanel titlePanel = new JPanel();
         titlePanel.setOpaque(false);
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0)); // Add 20px bottom margin
         titleLabel = new JLabel("Chess Game");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
         titleLabel.setForeground(Color.WHITE);
         titlePanel.add(titleLabel);
         
-        // Status info panel
-        JPanel infoPanel = new JPanel();
-        infoPanel.setLayout(new GridLayout(3, 1, 5, 5));
-        infoPanel.setOpaque(false);
+        // Move table panel (will be in center)
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        tablePanel.setOpaque(false);
         
         statusLabel = new JLabel("Game in progress");
         statusLabel.setForeground(Color.WHITE);
@@ -114,6 +115,9 @@ public class StatusPanel extends JPanel {
         moveTable.setBorder(null);
         moveTable.setShowGrid(false);
         moveTable.setIntercellSpacing(new Dimension(0, 0)); // Remove spacing between cells
+        
+        // Increase row height for better spacing
+        moveTable.setRowHeight(30); // Default is usually around 16-18, this gives more space
 
         JScrollPane scroll = new JScrollPane(moveTable);
         scroll.setBorder(null); // Remove the scroll pane border
@@ -176,17 +180,88 @@ public class StatusPanel extends JPanel {
                 return button;
             }
         });
-        add(scroll, BorderLayout.CENTER);
-        infoPanel.add(scroll);
-        infoPanel.add(statusLabel);
-        infoPanel.add(turnLabel);
+        
+        // Set preferred size for scroll pane to make table smaller
+        scroll.setPreferredSize(new Dimension(200, 150)); // Smaller height for move table
+        
+        // Add scroll pane to table panel
+        tablePanel.add(scroll, BorderLayout.CENTER);
+        
+        // Create chat box area for game messages (like chess.com)
+        JPanel chatBoxContainer = new JPanel(new BorderLayout());
+        chatBoxContainer.setBackground(new Color(50, 50, 50));
+        chatBoxContainer.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(70, 70, 70), 1),
+            BorderFactory.createEmptyBorder(8, 8, 8, 8)
+        ));
+        chatBoxContainer.setOpaque(true);
+        chatBoxContainer.setPreferredSize(new Dimension(200, 150));
+        
+        // Create message area with scrollable text area
+        JTextArea messageArea = new JTextArea();
+        messageArea.setBackground(new Color(50, 50, 50));
+        messageArea.setForeground(Color.WHITE);
+        messageArea.setFont(new Font("Arial", Font.PLAIN, 12));
+        messageArea.setEditable(false);
+        messageArea.setWrapStyleWord(true);
+        messageArea.setLineWrap(true);
+        messageArea.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        
+        JScrollPane messageScrollPane = new JScrollPane(messageArea);
+        messageScrollPane.setBorder(null);
+        messageScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        messageScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        messageScrollPane.getViewport().setBackground(new Color(50, 50, 50));
+        messageScrollPane.setBackground(new Color(50, 50, 50));
+        
+        // Style the message scroll bar
+        JScrollBar messageScrollBar = messageScrollPane.getVerticalScrollBar();
+        messageScrollBar.setBackground(new Color(30, 30, 30));
+        messageScrollBar.setUI(new javax.swing.plaf.basic.BasicScrollBarUI() {
+            @Override
+            protected void configureScrollBarColors() {
+                this.thumbColor = new Color(60, 60, 60);
+                this.trackColor = new Color(30, 30, 30);
+            }
+            
+            @Override
+            protected JButton createDecreaseButton(int orientation) {
+                JButton button = new JButton();
+                button.setPreferredSize(new Dimension(0, 0));
+                return button;
+            }
+            
+            @Override
+            protected JButton createIncreaseButton(int orientation) {
+                JButton button = new JButton();
+                button.setPreferredSize(new Dimension(0, 0));
+                return button;
+            }
+        });
+        
+        chatBoxContainer.add(messageScrollPane, BorderLayout.CENTER);
+        
+        // Store reference to message area for adding messages
+        this.messageArea = messageArea;
+        
+        // Add initial welcome message
+        addMessage("Game ready. Make your move!", Color.WHITE);
+        
+        // Create a wrapper panel for spacing between table and chat box
+        JPanel chatBoxWrapper = new JPanel(new BorderLayout());
+        chatBoxWrapper.setOpaque(false);
+        chatBoxWrapper.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0)); // 10px top margin
+        chatBoxWrapper.add(chatBoxContainer, BorderLayout.CENTER);
+        
+        // Add chat box below the table with spacing
+        tablePanel.add(chatBoxWrapper, BorderLayout.SOUTH);
 
-        // Button panel
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(4, 1, 5, 5));
+        // Button panel - make it minimal to stay at very bottom
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 5));
         buttonPanel.setOpaque(false);
         
         JButton undoButton = new JButton("Undo Move");
+        undoButton.setPreferredSize(new Dimension(120, 50)); // Compact button size
 
         undoButton.addActionListener(e -> gameController.undoMove());
         
@@ -194,8 +269,99 @@ public class StatusPanel extends JPanel {
 
         // Add all panels to the status panel
         add(titlePanel, BorderLayout.NORTH);
-        add(infoPanel, BorderLayout.CENTER);
+        add(tablePanel, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
+    }
+    
+    /**
+     * Add a message to the chat box area
+     */
+    public void addMessage(String message, Color color) {
+        SwingUtilities.invokeLater(() -> {
+            if (messageArea.getText().length() > 0) {
+                messageArea.append("\n");
+            }
+            
+            // Get current text and add colored message
+            String currentText = messageArea.getText();
+            messageArea.setText(currentText);
+            
+            // Create a styled document approach isn't easily supported in JTextArea,
+            // so we'll use a simple approach with prefixes for different message types
+            String prefix = "";
+            if (color == Color.RED) {
+                prefix = "⚠ ";
+            } else if (color == Color.GREEN) {
+                prefix = "✓ ";
+            } else if (color == Color.YELLOW || color == Color.ORANGE) {
+                prefix = "! ";
+            }
+            
+            messageArea.append(prefix + message);
+            
+            // Auto-scroll to bottom
+            messageArea.setCaretPosition(messageArea.getDocument().getLength());
+        });
+    }
+    
+    /**
+     * Add an error message in red
+     */
+    public void addErrorMessage(String message) {
+        addMessage(message, Color.RED);
+    }
+    
+    /**
+     * Add a success message in green
+     */
+    public void addSuccessMessage(String message) {
+        addMessage(message, Color.GREEN);
+    }
+    
+    /**
+     * Add a warning message in yellow
+     */
+    public void addWarningMessage(String message) {
+        addMessage(message, Color.YELLOW);
+    }
+    
+    /**
+     * Clear all messages from the chat box
+     */
+    public void clearMessages() {
+        SwingUtilities.invokeLater(() -> {
+            messageArea.setText("");
+        });
+    }
+    
+    /**
+     * Add a game start message
+     */
+    public void addGameStartMessage() {
+        clearMessages();
+        addSuccessMessage("New game started!");
+    }
+    
+    /**
+     * Add an invalid move message (like chess.com warnings)
+     */
+    public void addInvalidMoveMessage(String reason) {
+        addErrorMessage("Invalid move: " + reason);
+    }
+    
+    /**
+     * Add a turn violation message
+     */
+    public void addTurnViolationMessage(boolean isWhiteTurn) {
+        String currentPlayer = isWhiteTurn ? "White" : "Black";
+        addErrorMessage("It is " + currentPlayer + "'s turn");
+    }
+    
+    /**
+     * Add a check warning message
+     */
+    public void addCheckWarning() {
+        addErrorMessage("Cannot move, king in check");
     }
 
     /**
@@ -214,37 +380,31 @@ public class StatusPanel extends JPanel {
     public void updateStatus(GameState state) {
         switch (state) {
             case PLAYING:
-                statusLabel.setText("Game in progress");
-                statusLabel.setForeground(Color.BLACK);
+                // Don't add message for normal playing state
                 break;
             case CHECK:
-                statusLabel.setText("Check!");
-                statusLabel.setForeground(Color.RED);
+                addWarningMessage("Check!");
                 break;
             case CHECKMATE:
-                statusLabel.setText("Checkmate!");
-                statusLabel.setForeground(Color.RED);
+                addErrorMessage("Checkmate! Game over.");
                 break;
             case STALEMATE:
-                statusLabel.setText("Stalemate");
-                statusLabel.setForeground(Color.BLUE);
+                addMessage("Stalemate - Game is a draw.", Color.CYAN);
                 break;
             case DRAW:
-                statusLabel.setText("Draw");
-                statusLabel.setForeground(Color.BLUE);
+                addMessage("Game ended in a draw.", Color.CYAN);
                 break;
             case TIMEOUT:
-                statusLabel.setText("Timeout");
-                statusLabel.setForeground(Color.RED);
+                addErrorMessage("Time's up! Game over.");
                 break;
             default:
-                statusLabel.setText("Unknown state");
-                statusLabel.setForeground(Color.BLACK);
+                addMessage("Unknown game state.", Color.WHITE);
         }
     }
     
     public void setTurn(boolean isWhite) {
-        turnLabel.setText((isWhite ? "White" : "Black") + "'s turn");
+        // Don't add a message for normal turn changes
+        // Messages will only appear for violations via addTurnViolationMessage()
     }
 
      public void updateMoveHistory(List<?> moves) {

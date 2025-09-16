@@ -82,11 +82,3 @@ javachess/
     - [ ] Redesign UI
 
 
-## License
-- No license file present. Add a LICENSE if you intend to open-source.
-
-## Contact / Notes
-- Check console output from `com.clewi.javachess.ChessGame` on startup for run/debug info.
-- Asset images live in `lib/`. If images are missing, `BoardPanel` attempts to load from `lib/white_pieces` and `lib/black_pieces`.
-
-### Enjoy developing!
