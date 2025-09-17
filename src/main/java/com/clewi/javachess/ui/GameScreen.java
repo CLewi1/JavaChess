@@ -197,6 +197,8 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
             @Override
             protected Boolean doInBackground() throws Exception {
                 // This runs in background thread
+                // Add 2-second delay to make AI moves feel more natural
+                Thread.sleep(2000);
                 return gameManager.makeAIMove();
             }
             
@@ -238,7 +240,7 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
     }
     
     public void startNewGame() {
-        GameSettingsDialog settingsDialog = new GameSettingsDialog(this);
+        GameSettingsDialog settingsDialog = new GameSettingsDialog(this, gameMode);
         settingsDialog.setVisible(true);
         
         // If user canceled, don't start a new game
@@ -249,10 +251,17 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         timersEnabled = settingsDialog.isTimerEnabled();
         gameManager.resetGame();
         
-        // Configure AI based on game mode
+        // Configure AI based on game mode and color selection
         if ("PVAI".equals(gameMode)) {
-            gameManager.configureAI(true, true); // AI plays as black (second player)
-            DebugUtils.logImportant("AI enabled for PVAI mode");
+            boolean playerPlaysWhite = settingsDialog.doesPlayerPlayWhite();
+            boolean aiPlaysBlack = playerPlaysWhite; // AI plays opposite color
+            gameManager.configureAI(true, aiPlaysBlack);
+            
+            if (playerPlaysWhite) {
+                DebugUtils.logImportant("AI enabled as black player");
+            } else {
+                DebugUtils.logImportant("AI enabled as white player");
+            }
         } else {
             gameManager.configureAI(false, false); // No AI for PVP mode
         }
@@ -435,11 +444,17 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
     }
     
     private void createPlayerNameLabels() {
-        // Determine player names based on game mode
+        // Determine player names based on game mode and AI configuration
         String whitePlayerName, blackPlayerName;
         if ("PVAI".equals(gameMode)) {
-            whitePlayerName = "Player";
-            blackPlayerName = "AI";
+            // Check if AI is playing as black (aiAsBlack = true) or white (aiAsBlack = false)
+            if (gameManager.isAIAsBlack()) {
+                whitePlayerName = "Player";
+                blackPlayerName = "AI";
+            } else {
+                whitePlayerName = "AI";
+                blackPlayerName = "Player";
+            }
         } else {
             whitePlayerName = "Player 1";
             blackPlayerName = "Player 2";

@@ -723,6 +723,15 @@ public class GameManager {
     }
     
     /**
+     * Check if AI is configured to play as black.
+     * 
+     * @return true if AI plays as black, false if AI plays as white
+     */
+    public boolean isAIAsBlack() {
+        return aiPlaysAsBlack;
+    }
+    
+    /**
      * Get information about the AI for display purposes.
      * 
      * @return AI name if enabled, null otherwise
