@@ -6,12 +6,14 @@ import com.clewi.javachess.pieces.Piece;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import com.clewi.javachess.model.Board;
+import com.clewi.javachess.pieces.King;
+import com.clewi.javachess.pieces.Pawn;
 
 public class BoardPanel extends JPanel {
     private static final int SQUARE_SIZE = 65;
@@ -30,6 +32,8 @@ public class BoardPanel extends JPanel {
         loadImages();
         setFocusable(true);
         requestFocusInWindow();
+        
+        setOpaque(false);
     }
 
     private void loadImages() {
@@ -55,7 +59,6 @@ public class BoardPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         
-        // Draw the board squares
         drawBoard(g);
         
         // Draw the selected square highlight if any
@@ -66,8 +69,37 @@ public class BoardPanel extends JPanel {
                       SQUARE_SIZE, SQUARE_SIZE);
         }
         
-        // Draw the pieces
         drawPieces(g);
+        drawCoordinates(g);
+    }
+
+    private void drawCoordinates(Graphics g) {
+        g.setFont(new Font("Arial", Font.BOLD, 11));
+        
+        // Draw file letters (a-h) in bottom right corner of each file's bottom square
+        String[] files = {"a", "b", "c", "d", "e", "f", "g", "h"};
+        for (int i = 0; i < 8; i++) {
+            // Bottom squares (row 7)
+            boolean isLightSquare = (7 + i) % 2 == 0;
+            // Use opposite color for contrast
+            g.setColor(isLightSquare ? DARK_SQUARE : LIGHT_SQUARE);
+            
+            int x = i * SQUARE_SIZE + SQUARE_SIZE - 12; // Bottom right corner
+            int y = 7 * SQUARE_SIZE + SQUARE_SIZE - 5;  // Bottom of square
+            g.drawString(files[i], x, y);
+        }
+        
+        // Draw rank numbers (1-8) in top left corner of each rank's leftmost square
+        for (int i = 0; i < 8; i++) {
+            // Leftmost squares (column 0)
+            boolean isLightSquare = ((7 - i) + 0) % 2 == 0;
+            // Use opposite color for contrast
+            g.setColor(isLightSquare ? DARK_SQUARE : LIGHT_SQUARE);
+            
+            int x = 3; // Top left corner with small padding
+            int y = (7 - i) * SQUARE_SIZE + 12; // Top of square with padding
+            g.drawString(String.valueOf(i + 1), x, y);
+        }
     }
 
     private void drawBoard(Graphics g) {
@@ -164,12 +196,32 @@ public class BoardPanel extends JPanel {
                               " to " + clickedSquare.x + "," + clickedSquare.y);
             
             // Create a move
-            MoveType moveType = clickedPiece != null ? MoveType.CAPTURE : MoveType.NORMAL;
-            Move move = new Move(selectedPosition, clickedSquare, selectedPiece, moveType);
+            MoveType moveType = determineMoveType(selectedPiece, selectedPosition, clickedSquare);
+            Move move;
+            // If promotion, prompt user for choice
+            if (moveType == MoveType.PROMOTION && selectedPiece instanceof Pawn) {
+                String[] options = {"Queen", "Rook", "Bishop", "Knight"};
+                String choice = (String) JOptionPane.showInputDialog(this,
+                        "Choose promotion piece:",
+                        "Pawn Promotion",
+                        JOptionPane.PLAIN_MESSAGE,
+                        null,
+                        options,
+                        options[0]);
+                move = new Move(selectedPosition, clickedSquare, selectedPiece, moveType, choice);
+            } else {
+                move = new Move(selectedPosition, clickedSquare, selectedPiece, moveType);
+            }
             
             // Process the move through the game manager
             gameManager.makeMove(move);
-            
+
+            // Print last move details
+            Move lastMove = Board.getLastMove();
+            if (lastMove != null) {
+                System.out.println("Last move: " + lastMove);
+            }
+
             // Deselect piece after move attempt
             gameManager.deselectPiece();
             selectedSquare = null;
@@ -177,7 +229,40 @@ public class BoardPanel extends JPanel {
         }
     }
     
-    private boolean isWithinBounds(Point point) {
-        return point.x >= 0 && point.x < 8 && point.y >= 0 && point.y < 8;
+    private MoveType determineMoveType(Piece selectedPiece, Point source, Point dest) {
+        Piece destPiece = gameManager.getBoard().getPiece(dest.x, dest.y);
+        
+        // Check for en passant
+        if (selectedPiece instanceof Pawn) {
+            int direction = selectedPiece.isWhite() ? -1 : 1;
+            // En passant: diagonal move to empty square
+            if (Math.abs(dest.x - source.x) == 1 && dest.y == source.y + direction && destPiece == null) {
+                Piece adjacentPiece = gameManager.getBoard().getPiece(dest.x, source.y);
+                if (adjacentPiece instanceof Pawn &&
+                    adjacentPiece.isWhite() != selectedPiece.isWhite()) {
+                    if (gameManager.getBoard().isEnPassantPossible((Pawn) adjacentPiece)) {
+                        return MoveType.EN_PASSANT;
+                    }
+                }
+            }
+        }
+
+        // Check for castling
+        if (selectedPiece instanceof King) {
+            if (Math.abs(dest.x - source.x) == 2 && dest.y == source.y) {
+                // King moving 2 squares horizontally indicates castling
+                return MoveType.CASTLE;
+            }
+        }
+
+        // Check for promotion
+        if (selectedPiece instanceof Pawn) {
+            if ((selectedPiece.isWhite() && dest.y == 0) || (!selectedPiece.isWhite() && dest.y == 7)) {
+                return MoveType.PROMOTION;
+            }
+        }
+        
+        // Normal capture or move
+        return destPiece != null ? MoveType.CAPTURE : MoveType.NORMAL;
     }
 }

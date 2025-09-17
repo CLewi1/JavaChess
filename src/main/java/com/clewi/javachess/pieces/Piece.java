@@ -13,14 +13,35 @@ public abstract class Piece implements Serializable {
     final private boolean isWhite;
     private String filePath;
     protected transient Board board;
+    protected String name;
+    protected Boolean hasMoved;
     
-    public Piece(int x, int y, boolean isWhite, String filePath, Board board, boolean isCaptured) {
+    public Piece(int x, int y, boolean isWhite, String filePath, Board board, boolean isCaptured, String name, Boolean hasMoved) {
         this.isWhite = isWhite;
         this.x = x;
         this.y = y;
         this.filePath = filePath;
         this.board = board;
         this.isCaptured = isCaptured;
+        this.name = name;
+        this.hasMoved = hasMoved;
+    }
+
+    public Boolean getHasMoved() {
+        return hasMoved;
+    
+    }
+
+    public void setHasMoved() {
+        this.hasMoved = true;
+    }
+    
+    public void setHasMoved(boolean hasMoved) {
+        this.hasMoved = hasMoved;
+    }
+    
+    public void setHasMoved(Boolean hasMoved) {
+        this.hasMoved = hasMoved;
     }
     
     public String getFilePath() {
@@ -79,7 +100,15 @@ public abstract class Piece implements Serializable {
     public void setBoard(Board board) {
         this.board = board;
     }
-    
+
+    public String getName() {
+        return name;
+    }
+
+    public String getAbbreviation() {
+        return name.substring(0, 1).toUpperCase();
+    }
+
     public abstract boolean canMove(int destX, int destY);
     
     protected boolean isWithinBounds(int x, int y) {
@@ -111,5 +140,16 @@ public abstract class Piece implements Serializable {
         }
         
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "Piece{" +
+                "name='" + name + '\'' +
+                ", x=" + x +
+                ", y=" + y +
+                ", isWhite=" + isWhite +
+                ", isCaptured=" + isCaptured +
+                '}';
     }
 }

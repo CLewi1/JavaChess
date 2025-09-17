@@ -1,15 +1,13 @@
 package com.clewi.javachess.pieces;
 
-import java.awt.Point;
 import com.clewi.javachess.model.Board;
 import com.clewi.javachess.util.DebugUtils;
 
 public class Pawn extends Piece {
-    private boolean hasMoved = false;
 
     public Pawn(int x, int y, boolean is_white, String file_path, Board board, boolean is_captured)
     {
-        super(x, y, is_white, file_path, board, is_captured);
+        super(x, y, is_white, file_path, board, is_captured, "Pawn", false);
     }
     
     @Override
@@ -33,7 +31,7 @@ public class Pawn extends Piece {
         
         // Movement direction depends on the color
         int direction = isWhite() ? -1 : 1;
-        
+
         // Moving straight ahead (no capture)
         if (destination_x == x) {
             // One square forward
@@ -44,12 +42,26 @@ public class Pawn extends Piece {
             }
             
             // Two squares forward from starting position
-            if (!hasMoved && destination_y == y + 2 * direction) {
+            if ((hasMoved == null || !hasMoved) && destination_y == y + 2 * direction) {
                 boolean pathClear = board.getPiece(x, y + direction) == null;
                 boolean destClear = board.getPiece(destination_x, destination_y) == null;
                 boolean canMove = pathClear && destClear;
                 DebugUtils.logPawnMove("Two squares forward: " + canMove);
                 return canMove;
+            }
+        }
+
+        // En Passant
+        if (Math.abs(destination_x - x) == 1 && destination_y == y + direction) {
+            Piece adjacentPiece = board.getPiece(destination_x, y);
+            if (adjacentPiece instanceof Pawn && adjacentPiece.isWhite() != isWhite()) {
+                // Check if the adjacent pawn just moved two squares forward
+
+                System.out.println("\nChecking en passant for " + adjacentPiece);
+                if (board.isEnPassantPossible((Pawn) adjacentPiece)) {
+                    DebugUtils.logPawnMove("En Passant capture possible");
+                    return true;
+                }
             }
         }
         
@@ -61,15 +73,8 @@ public class Pawn extends Piece {
             return canCapture;
         }
         
+
         DebugUtils.logPawnMove("Move doesn't match any pawn movement pattern");
         return false;
-    }
-    
-    public void setHasMoved() {
-        this.hasMoved = true;
-    }
-    
-    public boolean getHasMoved() {
-        return hasMoved;
     }
 }

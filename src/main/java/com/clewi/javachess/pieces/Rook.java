@@ -1,25 +1,13 @@
 package com.clewi.javachess.pieces;
 
-import java.awt.Point;
 import com.clewi.javachess.model.Board;
 
 public class Rook extends Piece {
 
-    private boolean has_moved = false;
 
     public Rook(int x, int y, boolean is_white, String file_path, Board board, boolean is_captured)
     {
-        super(x, y, is_white, file_path, board, is_captured);
-    }
-    
-    public void setHasMoved(boolean has_moved)
-    {
-        this.has_moved = has_moved;
-    }
-    
-    public boolean getHasMoved()
-    {
-        return has_moved;
+        super(x, y, is_white, file_path, board, is_captured, "Rook", false);
     }
 
     @Override

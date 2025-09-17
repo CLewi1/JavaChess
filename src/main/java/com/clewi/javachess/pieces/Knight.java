@@ -1,13 +1,12 @@
 package com.clewi.javachess.pieces;
 
-import java.awt.Point;
 import com.clewi.javachess.model.Board;
 
 public class Knight extends Piece {
 
     public Knight(int x, int y, boolean is_white, String file_path, Board board, boolean is_captured)
     {
-        super(x, y, is_white, file_path, board, is_captured);
+        super(x, y, is_white, file_path, board, is_captured, "Knight", false);
     }
 
     @Override

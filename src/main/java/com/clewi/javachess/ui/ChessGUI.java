@@ -4,11 +4,14 @@ import com.clewi.javachess.game.GameManager;
 import com.clewi.javachess.game.GameStateEvent;
 import com.clewi.javachess.game.GameStateObserver;
 import com.clewi.javachess.model.*;
+import com.clewi.javachess.util.DebugUtils;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.util.ArrayList;
 
-public class ChessGUI implements GameStateObserver {
+public class ChessGUI implements GameStateObserver, GameController {
     private JFrame mainFrame;
     private BoardPanel boardPanel;
     private StatusPanel statusPanel;
@@ -16,11 +19,14 @@ public class ChessGUI implements GameStateObserver {
     
     public ChessGUI() {
         gameManager = new GameManager();
+        gameManager.initClocks(300, 2);
+        DebugUtils.logImportant("Clocks initialized to 5 minutes with 2 second increment.");
         
         // Register this as an observer for game state changes
         gameManager.registerObserver(this);
         
         initializeComponents();
+
     }
     
     private void initializeComponents() {
@@ -44,7 +50,8 @@ public class ChessGUI implements GameStateObserver {
         boardPanel.refresh();
         statusPanel.updateStatus(event.getGameState());
         statusPanel.setTurn(event.getSource().getCurrentPlayer().isWhite());
-        
+        statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory());
+
         // Check for checkmate or stalemate
         GameState state = event.getGameState();
         if (state == GameState.CHECKMATE) {
@@ -52,7 +59,18 @@ public class ChessGUI implements GameStateObserver {
             SwingUtilities.invokeLater(() -> showCheckmateDialog(winner));
         } else if (state == GameState.STALEMATE) {
             SwingUtilities.invokeLater(() -> showStalemateDialog());
+        } else if (state == GameState.DRAW) {
+            SwingUtilities.invokeLater(() -> {
+                JOptionPane.showMessageDialog(mainFrame, "The game is a draw.", "Game Over", JOptionPane.INFORMATION_MESSAGE);
+            });
+        } else if (state == GameState.TIMEOUT) {
+            Player winner = event.getSource().getOppositePlayer();
+            SwingUtilities.invokeLater(() -> {
+                String message = "Time out! " + (winner.isWhite() ? "White" : "Black") + " wins on time!";
+                JOptionPane.showMessageDialog(mainFrame, message, "Game Over", JOptionPane.INFORMATION_MESSAGE);
+            });
         }
+
     }
     
     private void showCheckmateDialog(Player winner) {
@@ -66,9 +84,14 @@ public class ChessGUI implements GameStateObserver {
     
     public void startNewGame() {
         gameManager.resetGame();
+        gameManager.initClocks(300, 2);
         boardPanel.refresh();
         statusPanel.updateStatus(GameState.PLAYING);
-        statusPanel.setTurn(true); // White goes first
+        statusPanel.setTurn(true);
+
+        // Reset move history display
+        Board.setMoveHistory(new ArrayList<>());
+        statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory());
     }
     
     public void saveGame() {
@@ -128,6 +151,7 @@ public class ChessGUI implements GameStateObserver {
                 boardPanel.refresh();
                 statusPanel.updateStatus(gameManager.getGameState());
                 statusPanel.setTurn(gameManager.getCurrentPlayer().isWhite());
+                statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory()); // Update move history display
                 JOptionPane.showMessageDialog(mainFrame, 
                         "Game loaded successfully", 
                         "Load Game", JOptionPane.INFORMATION_MESSAGE);
@@ -136,6 +160,20 @@ public class ChessGUI implements GameStateObserver {
                         "Failed to load game", 
                         "Load Game", JOptionPane.ERROR_MESSAGE);
             }
+        }
+    }
+
+    public void undoMove() {
+        boolean success = gameManager.undoMove();
+        if (success) {
+            boardPanel.refresh();
+            statusPanel.updateStatus(gameManager.getGameState());
+            statusPanel.setTurn(gameManager.getCurrentPlayer().isWhite());
+            statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory());
+        } else {
+            JOptionPane.showMessageDialog(mainFrame, 
+                    "No moves to undo", 
+                    "Undo Move", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 }

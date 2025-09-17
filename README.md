@@ -65,26 +65,23 @@ javachess/
 
 ## Current status & TODO
 - Implemented: 
-    - [ ] basic moves
-    - [ ] captures
-    - [ ] check/checkmate
+    - [x] basic moves
+    - [x] captures
+    - [x] check/checkmate
+    - [x] Basic Tests
+    - [x] En passant
+    - [x] Multi-save management
+    - [x] Fix King capturing into check
+    - [x] Castling (kingside and queenside)
+    - [x] Promotion UI
+    - [x] Undo / take-back
+    - [x] Timer / clocks
+    - [x] Undo moves after load
+    - [x] Redesign UI
+    - [x] AI Opponent
+
 - Planned:
-    - [ ] Tests
-    - [ ] En passant
-    - [ ] Castling
-    - [ ] Promotion UI
-    - [ ] Multi-save management
-    - [ ] Undo / take-back
-    - [ ] Timer / clocks
-    - [ ] Redesign button
-    - [ ] AI Opponent
 
 
-## License
-- No license file present. Add a LICENSE if you intend to open-source.
 
-## Contact / Notes
-- Check console output from `com.clewi.javachess.ChessGame` on startup for run/debug info.
-- Asset images live in `lib/`. If images are missing, `BoardPanel` attempts to load from `lib/white_pieces` and `lib/black_pieces`.
 
-### Enjoy developing!

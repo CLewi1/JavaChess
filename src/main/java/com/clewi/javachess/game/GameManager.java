@@ -2,23 +2,45 @@ package com.clewi.javachess.game;
 
 import com.clewi.javachess.model.*;
 import com.clewi.javachess.pieces.*;
-// Remove this import to prevent circular dependency
-// import com.clewi.javachess.ui.ChessGUI;
 import com.clewi.javachess.util.DebugUtils;
+import com.clewi.javachess.ai.ChessAI;
+import com.clewi.javachess.ai.GreedyAI;
+
 import java.awt.Point;
 import java.io.*;
 import java.util.*;
 
 public class GameManager {
+    // Game state management
     private GameState gameState;
     private List<GameStateObserver> observers;
+    private List<Piece> whiteCapturedPieces;
+    private List<Piece> blackCapturedPieces;
     private Board board;
     private Player whitePlayer;
     private Player blackPlayer;
     private Player currentPlayer;
+
+    // Move management
     private MoveValidator moveValidator;
     private Piece selectedPiece;
+    private List<DisplayableMove> loadedMoveHistory;
 
+    // Clock-related fields
+    private Integer whiteSecondsRemaining;
+    private Integer blackSecondsRemaining;
+    private int incrementSeconds;
+    private boolean clockEnabled = false;
+    private boolean whiteClockActive = false;
+    private boolean clocksRunning = false;
+    private Integer whiteSecondsAtTurnStart;
+    private Integer blackSecondsAtTurnStart;
+    
+    // AI-related fields
+    private boolean aiEnabled = false;
+    private boolean aiPlaysAsBlack = true; // By default, AI plays as black (second player)
+    private ChessAI chessAI;
+    
     public GameManager() {
         this.observers = new ArrayList<>();
         this.board = new Board();
@@ -27,6 +49,7 @@ public class GameManager {
         this.currentPlayer = whitePlayer;
         this.gameState = GameState.PLAYING;
         this.moveValidator = new MoveValidator(board);
+        this.loadedMoveHistory = new ArrayList<>();
     }
 
     public void registerObserver(GameStateObserver observer) {
@@ -41,18 +64,31 @@ public class GameManager {
             Piece piece = move.getPiece();
             Point source = move.getSource();
             Point dest = move.getDestination();
-            
-            // Update pawn's hasMoved status if it's a pawn
-            if (piece instanceof Pawn) {
-                ((Pawn) piece).setHasMoved();
-            }
-            
+
+            // Save Clock State Before Move
+            // Save the time values as they were at the START of this player's turn (if available),
+            // otherwise fall back to the current remaining values.
+            move.setWhiteSecondsBefore(this.whiteSecondsAtTurnStart != null ? this.whiteSecondsAtTurnStart : this.whiteSecondsRemaining);
+            move.setBlackSecondsBefore(this.blackSecondsAtTurnStart != null ? this.blackSecondsAtTurnStart : this.blackSecondsRemaining);
+            move.setWhiteClockActiveBefore(this.whiteClockActive);
+            move.setClocksRunningBefore(this.clocksRunning);
+
             // Handle captures
             Piece capturedPiece = board.getPiece(dest.x, dest.y);
             if (capturedPiece != null) {
                 DebugUtils.logImportant("Capturing " + capturedPiece.getClass().getSimpleName());
                 capturedPiece.setCaptured(true);
                 handleCapture(capturedPiece);
+            }
+            
+            // Handle en passant captures
+            if (move.getMoveType() == MoveType.EN_PASSANT) {
+                Piece enPassantCaptured = board.getPiece(dest.x, source.y);
+                if (enPassantCaptured != null) {
+                    DebugUtils.logImportant("En passant capturing " + enPassantCaptured.getClass().getSimpleName());
+                    enPassantCaptured.setCaptured(true);
+                    handleCapture(enPassantCaptured);
+                }
             }
             
             // Update board
@@ -76,6 +112,15 @@ public class GameManager {
             // Switch player and notify observers
             switchPlayer();
             notifyObservers();
+
+            if (clockEnabled && !clocksRunning) {
+                // Only start clocks after the first move
+                clocksRunning = true;
+                DebugUtils.logImportant("Clocks started.");
+            }
+
+
+            switchClocks();
         } else {
             System.out.println("Invalid move attempted");
         }
@@ -83,10 +128,6 @@ public class GameManager {
 
     private void handleCapture(Piece piece) {
         getCurrentPlayer().addCapturedPiece(piece);
-    }
-
-    private boolean isValidMove(Move move) {
-        return moveValidator.isValidMove(move);
     }
 
     private void notifyObservers() {
@@ -111,10 +152,6 @@ public class GameManager {
         currentPlayer = currentPlayer == whitePlayer ? blackPlayer : whitePlayer;
     }
     
-    private boolean isCheckmate(Player player) {
-        return moveValidator.isCheckmate(player.isWhite());
-    }
-
     // Add these necessary methods for the UI
     public void selectPiece(int x, int y) {
         Piece piece = board.getPiece(x, y);
@@ -136,6 +173,18 @@ public class GameManager {
     }
     
     /**
+     * Get the move history for display.
+     * During active gameplay, returns the actual move history.
+     * After loading a game, returns the loaded move history for display.
+     */
+    public List<?> getDisplayMoveHistory() {
+        if (!loadedMoveHistory.isEmpty()) {
+            return loadedMoveHistory;
+        }
+        return Board.getMoveHistory();
+    }
+    
+    /**
      * Resets the game to its initial state.
      */
     public void resetGame() {
@@ -151,6 +200,7 @@ public class GameManager {
         // Reset game state
         this.gameState = GameState.PLAYING;
         this.selectedPiece = null;
+        this.loadedMoveHistory = new ArrayList<>(); // Clear loaded move history
         
         // Notify observers about the reset
         notifyObservers();
@@ -201,6 +251,8 @@ public class GameManager {
             e.printStackTrace();
             return false;
         }
+
+
     }
     
     private GameSaveData createSaveData() {
@@ -213,11 +265,23 @@ public class GameManager {
         }
         
         boolean isWhiteTurn = currentPlayer == whitePlayer;
-        List<Piece> whiteCapturedPieces = new ArrayList<>(whitePlayer.getCapturedPieces());
-        List<Piece> blackCapturedPieces = new ArrayList<>(blackPlayer.getCapturedPieces());
+        whiteCapturedPieces = new ArrayList<>(whitePlayer.getCapturedPieces());
+        blackCapturedPieces = new ArrayList<>(blackPlayer.getCapturedPieces());
+        DebugUtils.logImportant("Saving move history with " + Board.getMoveHistory().size() + " moves.");
         
-        return new GameSaveData(boardState, isWhiteTurn, gameState, 
-                                whiteCapturedPieces, blackCapturedPieces);
+        // Convert Move objects to MoveData objects for serialization
+        List<MoveData> moveHistoryData = new ArrayList<>();
+        for (Move move : Board.getMoveHistory()) {
+            moveHistoryData.add(convertMoveToData(move));
+        }
+
+        // Handle null clock values by providing defaults
+        int whiteSeconds = whiteSecondsRemaining != null ? whiteSecondsRemaining : 0;
+        int blackSeconds = blackSecondsRemaining != null ? blackSecondsRemaining : 0;
+        
+        return new GameSaveData(boardState, isWhiteTurn, gameState,
+                                whiteCapturedPieces, blackCapturedPieces, moveHistoryData,
+                                whiteSeconds, blackSeconds);
     }
     
     private void restoreFromSaveData(GameSaveData saveData) {
@@ -270,5 +334,413 @@ public class GameManager {
         // Reset other components
         this.selectedPiece = null;
         this.moveValidator = new MoveValidator(board);
+        
+        // Reconstruct actual Move objects so undo works after loading.
+        List<Move> reconstructed = reconstructMovesFromData(saveData.getMoveHistory());
+        Board.setMoveHistory(reconstructed);
+        
+        // Convert saved MoveData to displayable moves for the UI
+        this.loadedMoveHistory = new ArrayList<>();
+        if (saveData.getMoveHistory() != null) {
+            for (MoveData moveData : saveData.getMoveHistory()) {
+                loadedMoveHistory.add(new DisplayableMove(moveData));
+            }
+            DebugUtils.logImportant("Restored " + loadedMoveHistory.size() + " moves for display");
+        }
+
+        // Restore clock times
+        this.whiteSecondsRemaining = saveData.getWhiteSecondsRemaining();
+        this.blackSecondsRemaining = saveData.getBlackSecondsRemaining();
+        if (whiteSecondsRemaining != null && blackSecondsRemaining != null) {
+            this.clockEnabled = true;
+            this.whiteClockActive = saveData.isWhiteTurn();
+            this.clocksRunning = false;
+            // When loading, treat the saved remaining times as the start-of-turn samples so undos restore sensibly.
+            this.whiteSecondsAtTurnStart = this.whiteSecondsRemaining;
+            this.blackSecondsAtTurnStart = this.blackSecondsRemaining;
+        }
     }
+
+    /**
+     * Reconstruct Move objects from saved MoveData so undo/board history works after loading.
+     * Best-effort mapping: prefers the piece found at the destination; falls back to searching
+     * for a piece of the same type and color on the board.
+     */
+    private List<Move> reconstructMovesFromData(List<MoveData> moveDataList) {
+        List<Move> reconstructed = new ArrayList<>();
+        if (moveDataList == null) return reconstructed;
+
+        for (MoveData md : moveDataList) {
+            Point src = md.getSource();
+            Point dst = md.getDestination();
+
+            // Try to find the moving piece at the destination (final board state).
+            Piece movingPiece = null;
+            if (dst != null) {
+                movingPiece = board.getPiece(dst.x, dst.y);
+            }
+
+            // Fallback: find a piece of the same type and color on the board.
+            if (movingPiece == null && md.getPieceType() != null) {
+                boolean isWhite = md.isWhite();
+                for (Piece p : board.getPieces(isWhite)) {
+                    if (p.getClass().getSimpleName().equals(md.getPieceType())) {
+                        movingPiece = p;
+                        break;
+                    }
+                }
+            }
+
+            // If we still couldn't find a piece, log and skip this move (defensive).
+            if (movingPiece == null) {
+                DebugUtils.logImportant("Could not locate moving piece for move " + md + " — skipping reconstruction entry.");
+                continue;
+            }
+
+            // Construct Move using correct constructor ordering: (source, destination, piece, moveType, promotionChoice)
+            Move m = new Move(src, dst, movingPiece, md.getMoveType(), md.getPromotionChoice());
+            m.setWasPieceHasMoved(md.wasPieceHasMoved());
+
+            // Attach captured piece by matching class name in captured lists
+            if (md.getCapturedPieceType() != null) {
+                List<Piece> capList = movingPiece.isWhite() ? blackPlayer.getCapturedPieces() : whitePlayer.getCapturedPieces();
+                for (Piece p : capList) {
+                    if (p.getClass().getSimpleName().equals(md.getCapturedPieceType())) {
+                        m.setCapturedPiece(p);
+                        break;
+                    }
+                }
+            }
+
+            // Attach en-passant captured piece if present
+            if (md.getEnPassantCapturedPieceType() != null) {
+                List<Piece> capList = movingPiece.isWhite() ? blackPlayer.getCapturedPieces() : whitePlayer.getCapturedPieces();
+                for (Piece p : capList) {
+                    if (p.getClass().getSimpleName().equals(md.getEnPassantCapturedPieceType())) {
+                        m.setEnPassantCapturedPiece(p);
+                        break;
+                    }
+                }
+            }
+
+            // Attach promoted piece (promoted piece should be on board at dst)
+            if (md.getPromotedPieceType() != null && dst != null) {
+                Piece promoted = board.getPiece(dst.x, dst.y);
+                if (promoted != null && promoted.getClass().getSimpleName().equals(md.getPromotedPieceType())) {
+                    m.setPromotedPiece(promoted);
+                }
+            }
+
+            // No per-move clock metadata is stored in MoveData currently.
+            // Restore per-move clock metadata (if available) so undo can reinstate clocks after load
+            if (md.getWhiteSecondsBefore() != null) m.setWhiteSecondsBefore(md.getWhiteSecondsBefore());
+            if (md.getBlackSecondsBefore() != null) m.setBlackSecondsBefore(md.getBlackSecondsBefore());
+            if (md.getWhiteClockActiveBefore() != null) m.setWhiteClockActiveBefore(md.getWhiteClockActiveBefore());
+            if (md.getClocksRunningBefore() != null) m.setClocksRunningBefore(md.getClocksRunningBefore());
+
+            reconstructed.add(m);
+        }
+
+        return reconstructed;
+    }
+
+    public boolean undoMove() {
+        Move lastMove = Board.getLastMove();
+        if (lastMove == null) {
+            return false; // No moves to undo
+        }
+
+        // Undo the move on the board
+        board.undoLastMove(lastMove);
+
+        // Restore clock state
+        Integer whiteBefore = lastMove.getWhiteSecondsBefore();
+        Integer blackBefore = lastMove.getBlackSecondsBefore();
+        Boolean activeBefore = lastMove.getWhiteClockActiveBefore();
+        Boolean runningBefore = lastMove.getClocksRunningBefore();
+
+        if (whiteBefore != null && blackBefore != null && activeBefore != null && runningBefore != null) {
+            this.whiteSecondsRemaining = whiteBefore;
+            this.blackSecondsRemaining = blackBefore;
+            this.whiteClockActive = activeBefore;
+            this.clocksRunning = runningBefore;
+            this.whiteSecondsAtTurnStart = this.whiteSecondsRemaining;
+            this.blackSecondsAtTurnStart = this.blackSecondsRemaining;
+            DebugUtils.logImportant("Clock state restored on undo.");
+        } else {
+            undoClockSwitch();
+            DebugUtils.logImportant("No clock state to restore on undo. Falling back to switch.");
+        }
+
+        // Switch back to the previous player
+        switchPlayer();
+
+        // Update game state (assume we're back to playing unless we need to check for check)
+        boolean currentPlayerInCheck = moveValidator.isKingInCheck(currentPlayer.isWhite());
+        if (currentPlayerInCheck) {
+            boolean isCheckmate = moveValidator.isCheckmate(currentPlayer.isWhite());
+            if (isCheckmate) {
+                gameState = GameState.CHECKMATE;
+            } else {
+                gameState = GameState.CHECK;
+            }
+        } else {
+            gameState = GameState.PLAYING;
+        }
+
+        // Restore captured pieces if needed
+        if (lastMove.getCapturedPiece() != null) {
+            Piece captured = lastMove.getCapturedPiece();
+            // Remove from current player's captured pieces
+            getCurrentPlayer().removeCapturedPiece(captured);
+        }
+
+        if (lastMove.getEnPassantCapturedPiece() != null) {
+            Piece enPassantCaptured = lastMove.getEnPassantCapturedPiece();
+            // Remove from current player's captured pieces  
+            getCurrentPlayer().removeCapturedPiece(enPassantCaptured);
+        }
+
+        // Notify observers of the change
+        notifyObservers();
+        
+        return true;
+    }
+    
+    /**
+     * Converts a Move object to a MoveData object for serialization
+     */
+    private MoveData convertMoveToData(Move move) {
+        MoveData moveData = new MoveData(
+            move.getSource(),
+            move.getDestination(),
+            move.getPiece().getClass().getSimpleName(),
+            move.getPiece().isWhite(),
+            move.getMoveType(),
+            move.getPromotionChoice()
+        );
+        
+        // Set additional data for undo functionality
+        if (move.getCapturedPiece() != null) {
+            moveData.setCapturedPieceType(move.getCapturedPiece().getClass().getSimpleName());
+        }
+        if (move.getEnPassantCapturedPiece() != null) {
+            moveData.setEnPassantCapturedPieceType(move.getEnPassantCapturedPiece().getClass().getSimpleName());
+        }
+        if (move.getPromotedPiece() != null) {
+            moveData.setPromotedPieceType(move.getPromotedPiece().getClass().getSimpleName());
+        }
+        moveData.setWasPieceHasMoved(move.wasPieceHasMoved());
+        // Store clock metadata for undo restoration
+        moveData.setWhiteSecondsBefore(move.getWhiteSecondsBefore());
+        moveData.setBlackSecondsBefore(move.getBlackSecondsBefore());
+        moveData.setWhiteClockActiveBefore(move.getWhiteClockActiveBefore());
+        moveData.setClocksRunningBefore(move.getClocksRunningBefore());
+        
+        return moveData;
+    }
+
+    /**
+     * Clock-related methods
+    */
+
+    public void initClocks(int secondsPerPlayer, int incrementSeconds) {
+        this.whiteSecondsRemaining = secondsPerPlayer;
+        this.blackSecondsRemaining = secondsPerPlayer;
+        this.incrementSeconds = incrementSeconds;
+        this.clockEnabled = true;
+        this.whiteClockActive = true;
+        this.clocksRunning = false;
+
+        // At the start, both players' "turn start" times are their initial allocations.
+        this.whiteSecondsAtTurnStart = this.whiteSecondsRemaining;
+        this.blackSecondsAtTurnStart = this.blackSecondsRemaining;
+    }
+
+    public void disableClocks() {
+        this.clockEnabled = false;
+        this.whiteSecondsRemaining = null;
+        this.blackSecondsRemaining = null;
+        this.whiteSecondsAtTurnStart = null;
+        this.blackSecondsAtTurnStart = null;
+    }
+
+    public boolean isClockEnabled() {
+        return clockEnabled;
+    }
+
+    public Integer getWhiteSecondsRemaining() {
+        return whiteSecondsRemaining;
+    }
+
+    public Integer getBlackSecondsRemaining() {
+        return blackSecondsRemaining;
+    }
+
+    // Called every second by UI Timer. Returns true if timeout occurred.
+    public boolean tick() {
+        if (!clockEnabled) return false;
+        if (!clocksRunning) return false;
+
+        if (whiteClockActive) {
+            whiteSecondsRemaining = Math.max(0, whiteSecondsRemaining - 1);
+            if (whiteSecondsRemaining == 0) {
+                handleTimeout(false); // white timed out -> black wins
+                return true;
+            }
+        } else {
+            blackSecondsRemaining = Math.max(0, blackSecondsRemaining - 1);
+            if (blackSecondsRemaining == 0) {
+                handleTimeout(true); // black timed out -> white wins
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void handleTimeout(boolean whiteWins) {
+        clockEnabled = false;
+        gameState = GameState.TIMEOUT;
+        DebugUtils.logImportant((whiteWins ? "White" : "Black") + " wins on time!");
+        notifyObservers();
+    }
+
+    public void switchClocks() {
+        if (!clockEnabled) return;
+        if (whiteClockActive) {
+            // White just moved, add increment
+            whiteSecondsRemaining += incrementSeconds;
+        } else {
+            // Black just moved, add increment
+            blackSecondsRemaining += incrementSeconds;
+        }
+        // Flip active clock
+        whiteClockActive = !whiteClockActive;
+
+        // Record the remaining time as the start-of-turn time for the player who is now active
+        if (whiteClockActive) {
+            whiteSecondsAtTurnStart = whiteSecondsRemaining;
+        } else {
+            blackSecondsAtTurnStart = blackSecondsRemaining;
+        }
+    }
+
+    public void undoClockSwitch() {
+        if (!clockEnabled) return;
+        whiteClockActive = !whiteClockActive;
+        // Remove increment added during switch
+        if (whiteClockActive) {
+            whiteSecondsRemaining = Math.max(0, whiteSecondsRemaining - incrementSeconds);
+            // Update start-of-turn sample
+            whiteSecondsAtTurnStart = whiteSecondsRemaining;
+        } else {
+            blackSecondsRemaining = Math.max(0, blackSecondsRemaining - incrementSeconds);
+            blackSecondsAtTurnStart = blackSecondsRemaining;
+        }
+    }
+
+    public static String formatTime(int seconds) {
+        int s = Math.max(0, seconds);
+        int m = s / 60;
+        int sec = s % 60;
+        return String.format("%02d:%02d", m, sec);
+    }
+
+    public boolean areClocksRunning() {
+        return clocksRunning;
+    }
+
+    // ==================== AI INTEGRATION METHODS ====================
+    
+    /**
+     * Enable AI and set which color it plays as.
+     * 
+     * @param enabled Whether AI should be enabled
+     * @param aiPlaysAsBlack Whether AI plays as black (true) or white (false)
+     */
+    public void configureAI(boolean enabled, boolean aiPlaysAsBlack) {
+        this.aiEnabled = enabled;
+        this.aiPlaysAsBlack = aiPlaysAsBlack;
+        
+        if (enabled && chessAI == null) {
+            chessAI = new GreedyAI();
+            DebugUtils.logImportant("AI initialized: " + chessAI.getName() + 
+                                   " playing as " + (aiPlaysAsBlack ? "black" : "white"));
+        }
+    }
+    
+    /**
+     * Check if it's currently the AI's turn to move.
+     * 
+     * @return true if AI should make the next move
+     */
+    public boolean isAITurn() {
+        if (!aiEnabled || chessAI == null) {
+            return false;
+        }
+        
+        // AI's turn if current player matches AI color
+        return currentPlayer.isWhite() != aiPlaysAsBlack;
+    }
+    
+    /**
+     * Get the best move from the AI and attempt to make it.
+     * This method should be called from the UI layer on a background thread.
+     * 
+     * @return true if AI successfully made a move, false otherwise
+     */
+    public boolean makeAIMove() {
+        if (!isAITurn()) {
+            DebugUtils.log("makeAIMove called but it's not AI's turn");
+            return false;
+        }
+        
+        DebugUtils.logImportant("AI is calculating move...");
+        
+        // Get the best move from the AI
+        Move aiMove = chessAI.getBestMove(board, currentPlayer.isWhite());
+        
+        if (aiMove == null) {
+            DebugUtils.logImportant("AI could not find a legal move");
+            return false;
+        }
+        
+        DebugUtils.logImportant("AI selected move: " + aiMove);
+        
+        // Make the move using the normal game flow
+        makeMove(aiMove);
+        
+        return true;
+    }
+    
+    /**
+     * Check if AI is enabled for this game.
+     * 
+     * @return true if AI is enabled
+     */
+    public boolean isAIEnabled() {
+        return aiEnabled;
+    }
+    
+    /**
+     * Check if AI is configured to play as black.
+     * 
+     * @return true if AI plays as black, false if AI plays as white
+     */
+    public boolean isAIAsBlack() {
+        return aiPlaysAsBlack;
+    }
+    
+    /**
+     * Get information about the AI for display purposes.
+     * 
+     * @return AI name if enabled, null otherwise
+     */
+    public String getAIInfo() {
+        if (aiEnabled && chessAI != null) {
+            return chessAI.getName() + " (playing as " + (aiPlaysAsBlack ? "black" : "white") + ")";
+        }
+        return null;
+    }
+
 }
