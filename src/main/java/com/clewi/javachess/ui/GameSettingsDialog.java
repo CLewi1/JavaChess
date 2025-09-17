@@ -8,13 +8,18 @@ public class GameSettingsDialog extends JDialog {
     private int minutesPerPlayer = 5;
     private int incrementSeconds = 2;
     private boolean confirmed = false;
+    private boolean playerPlaysWhite = true; // Default: player plays white, AI plays black
+    private String gameMode;
     
     private JCheckBox enableTimerCheckbox;
     private JSpinner minutesSpinner;
     private JSpinner incrementSpinner;
+    private JRadioButton whiteColorButton;
+    private JRadioButton blackColorButton;
     
-    public GameSettingsDialog(JFrame parent) {
+    public GameSettingsDialog(JFrame parent, String gameMode) {
         super(parent, "Game Settings", true);
+        this.gameMode = gameMode;
         initializeComponents();
     }
     
@@ -77,6 +82,44 @@ public class GameSettingsDialog extends JDialog {
         incrementSpinner.setPreferredSize(new Dimension(80, 25));
         mainPanel.add(incrementSpinner, gbc);
         
+        // Color selection for PVAI mode
+        if ("PVAI".equals(gameMode)) {
+            gbc.gridx = 0;
+            gbc.gridy = 4;
+            gbc.gridwidth = 2;
+            
+            JLabel colorLabel = new JLabel("Choose your color:");
+            colorLabel.setForeground(Color.WHITE);
+            colorLabel.setFont(new Font("Arial", Font.BOLD, 14));
+            mainPanel.add(colorLabel, gbc);
+            
+            gbc.gridy = 5;
+            gbc.gridwidth = 1;
+            JPanel colorPanel = new JPanel(new FlowLayout());
+            colorPanel.setBackground(new Color(48, 46, 43));
+            
+            whiteColorButton = new JRadioButton("Play as White");
+            whiteColorButton.setSelected(playerPlaysWhite);
+            whiteColorButton.setBackground(new Color(48, 46, 43));
+            whiteColorButton.setForeground(Color.WHITE);
+            whiteColorButton.setFont(new Font("Arial", Font.PLAIN, 14));
+            
+            blackColorButton = new JRadioButton("Play as Black");
+            blackColorButton.setSelected(!playerPlaysWhite);
+            blackColorButton.setBackground(new Color(48, 46, 43));
+            blackColorButton.setForeground(Color.WHITE);
+            blackColorButton.setFont(new Font("Arial", Font.PLAIN, 14));
+            
+            ButtonGroup colorGroup = new ButtonGroup();
+            colorGroup.add(whiteColorButton);
+            colorGroup.add(blackColorButton);
+            
+            colorPanel.add(whiteColorButton);
+            colorPanel.add(blackColorButton);
+            
+            mainPanel.add(colorPanel, gbc);
+        }
+        
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.setBackground(new Color(48, 46, 43));
         
@@ -88,6 +131,12 @@ public class GameSettingsDialog extends JDialog {
                 minutesPerPlayer = (Integer) minutesSpinner.getValue();
                 incrementSeconds = (Integer) incrementSpinner.getValue();
             }
+            
+            // Capture color selection for PVAI mode
+            if ("PVAI".equals(gameMode)) {
+                playerPlaysWhite = whiteColorButton.isSelected();
+            }
+            
             dispose();
         });
         
@@ -179,5 +228,9 @@ public class GameSettingsDialog extends JDialog {
     
     public int getSecondsPerPlayer() {
         return minutesPerPlayer * 60;
+    }
+    
+    public boolean doesPlayerPlayWhite() {
+        return playerPlaysWhite;
     }
 }

@@ -459,5 +459,23 @@ public class StatusPanel extends JPanel {
             }
         });
     }
+    
+    /**
+     * Show AI thinking message to indicate the AI is processing a move.
+     */
+    public void showAIThinkingMessage() {
+        SwingUtilities.invokeLater(() -> {
+            addMessage("AI is thinking...", new Color(100, 149, 237)); // Cornflower blue
+        });
+    }
+    
+    /**
+     * Clear the AI thinking message when AI move is complete.
+     */
+    public void clearAIThinkingMessage() {
+        SwingUtilities.invokeLater(() -> {
+            addMessage("AI move completed", Color.GREEN);
+        });
+    }
 
 }

@@ -145,6 +145,15 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory());
 
         GameState state = event.getGameState();
+        
+        // Check if AI should make a move (only if game is still playing)
+        if (state == GameState.PLAYING || state == GameState.CHECK) {
+            if (gameManager.isAITurn()) {
+                // Schedule AI move on background thread to avoid blocking UI
+                SwingUtilities.invokeLater(() -> triggerAIMove());
+            }
+        }
+        
         if (state == GameState.CHECKMATE) {
             Player winner = event.getSource().getOppositePlayer();
             SwingUtilities.invokeLater(() -> showCheckmateDialog(winner));
@@ -172,8 +181,66 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         JOptionPane.showMessageDialog(this, "Stalemate! The game is a draw.", "Game Over", JOptionPane.INFORMATION_MESSAGE);
     }
     
+    /**
+     * Trigger an AI move using SwingWorker for background processing.
+     * This prevents UI freezing and provides user feedback while AI thinks.
+     */
+    private void triggerAIMove() {
+        if (!gameManager.isAITurn()) {
+            return; // Safety check
+        }
+        
+        DebugUtils.logImportant("Triggering AI move with background processing...");
+        
+        // Create SwingWorker for background AI processing
+        SwingWorker<Boolean, Void> aiWorker = new SwingWorker<Boolean, Void>() {
+            @Override
+            protected Boolean doInBackground() throws Exception {
+                // This runs in background thread
+                // Add 2-second delay to make AI moves feel more natural
+                Thread.sleep(2000);
+                return gameManager.makeAIMove();
+            }
+            
+            @Override
+            protected void done() {
+                try {
+                    // This runs on EDT after background work completes
+                    boolean success = get();
+                    
+                    // Re-enable user input
+                    boardPanel.setEnabled(true);
+                    
+                    // Clear AI thinking message
+                    statusPanel.clearAIThinkingMessage();
+                    
+                    if (!success) {
+                        DebugUtils.logImportant("AI failed to make a move");
+                        statusPanel.addErrorMessage("AI failed to make a move");
+                    } else {
+                        DebugUtils.logImportant("AI move completed successfully");
+                    }
+                } catch (Exception e) {
+                    DebugUtils.logImportant("Error during AI move: " + e.getMessage());
+                    statusPanel.addErrorMessage("AI move error: " + e.getMessage());
+                    boardPanel.setEnabled(true);
+                    statusPanel.clearAIThinkingMessage();
+                }
+            }
+        };
+        
+        // Disable user input while AI thinks
+        boardPanel.setEnabled(false);
+        
+        // Show AI thinking message
+        statusPanel.showAIThinkingMessage();
+        
+        // Start the background AI work
+        aiWorker.execute();
+    }
+    
     public void startNewGame() {
-        GameSettingsDialog settingsDialog = new GameSettingsDialog(this);
+        GameSettingsDialog settingsDialog = new GameSettingsDialog(this, gameMode);
         settingsDialog.setVisible(true);
         
         // If user canceled, don't start a new game
@@ -183,6 +250,21 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         
         timersEnabled = settingsDialog.isTimerEnabled();
         gameManager.resetGame();
+        
+        // Configure AI based on game mode and color selection
+        if ("PVAI".equals(gameMode)) {
+            boolean playerPlaysWhite = settingsDialog.doesPlayerPlayWhite();
+            boolean aiPlaysBlack = playerPlaysWhite; // AI plays opposite color
+            gameManager.configureAI(true, aiPlaysBlack);
+            
+            if (playerPlaysWhite) {
+                DebugUtils.logImportant("AI enabled as black player");
+            } else {
+                DebugUtils.logImportant("AI enabled as white player");
+            }
+        } else {
+            gameManager.configureAI(false, false); // No AI for PVP mode
+        }
         
         // Configure clock based on user settings
         if (settingsDialog.isTimerEnabled()) {
@@ -315,16 +397,54 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
     }
 
     public void undoMove() {
-        boolean success = gameManager.undoMove();
-        if (success) {
-            boardPanel.refresh();
-            statusPanel.updateStatus(gameManager.getGameState());
-            statusPanel.setTurn(gameManager.getCurrentPlayer().isWhite());
-            statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory());
+        // In PVAI mode, we want to undo both the AI's move and the player's move
+        // so the player gets back to their turn before their last move
+        if ("PVAI".equals(gameMode) && gameManager.isAIEnabled()) {
+            // First, check if we have at least 2 moves to undo
+            if (Board.getMoveHistory().size() < 2) {
+                JOptionPane.showMessageDialog(this, 
+                        "Need at least 2 moves to undo in AI mode", 
+                        "Undo Move", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            
+            // Undo the AI's move first
+            boolean firstUndo = gameManager.undoMove();
+            if (firstUndo) {
+                // Then undo the player's move
+                boolean secondUndo = gameManager.undoMove();
+                if (secondUndo) {
+                    // Successful double undo - refresh UI
+                    boardPanel.refresh();
+                    statusPanel.updateStatus(gameManager.getGameState());
+                    statusPanel.setTurn(gameManager.getCurrentPlayer().isWhite());
+                    statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory());
+                    DebugUtils.logImportant("Successfully undid both AI and player moves in PVAI mode");
+                } else {
+                    // Second undo failed - this shouldn't happen if we checked properly
+                    JOptionPane.showMessageDialog(this, 
+                            "Failed to undo player move", 
+                            "Undo Move", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                // First undo failed
+                JOptionPane.showMessageDialog(this, 
+                        "Failed to undo AI move", 
+                        "Undo Move", JOptionPane.ERROR_MESSAGE);
+            }
         } else {
-            JOptionPane.showMessageDialog(this, 
-                    "No moves to undo", 
-                    "Undo Move", JOptionPane.INFORMATION_MESSAGE);
+            // PVP mode or AI disabled - undo single move as before
+            boolean success = gameManager.undoMove();
+            if (success) {
+                boardPanel.refresh();
+                statusPanel.updateStatus(gameManager.getGameState());
+                statusPanel.setTurn(gameManager.getCurrentPlayer().isWhite());
+                statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory());
+            } else {
+                JOptionPane.showMessageDialog(this, 
+                        "No moves to undo", 
+                        "Undo Move", JOptionPane.INFORMATION_MESSAGE);
+            }
         }
     }
     
@@ -362,11 +482,17 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
     }
     
     private void createPlayerNameLabels() {
-        // Determine player names based on game mode
+        // Determine player names based on game mode and AI configuration
         String whitePlayerName, blackPlayerName;
         if ("PVAI".equals(gameMode)) {
-            whitePlayerName = "Player";
-            blackPlayerName = "AI";
+            // Check if AI is playing as black (aiAsBlack = true) or white (aiAsBlack = false)
+            if (gameManager.isAIAsBlack()) {
+                whitePlayerName = "Player";
+                blackPlayerName = "AI";
+            } else {
+                whitePlayerName = "AI";
+                blackPlayerName = "Player";
+            }
         } else {
             whitePlayerName = "Player 1";
             blackPlayerName = "Player 2";

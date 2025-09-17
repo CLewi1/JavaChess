@@ -3,6 +3,8 @@ package com.clewi.javachess.game;
 import com.clewi.javachess.model.*;
 import com.clewi.javachess.pieces.*;
 import com.clewi.javachess.util.DebugUtils;
+import com.clewi.javachess.ai.ChessAI;
+import com.clewi.javachess.ai.GreedyAI;
 
 import java.awt.Point;
 import java.io.*;
@@ -33,6 +35,11 @@ public class GameManager {
     private boolean clocksRunning = false;
     private Integer whiteSecondsAtTurnStart;
     private Integer blackSecondsAtTurnStart;
+    
+    // AI-related fields
+    private boolean aiEnabled = false;
+    private boolean aiPlaysAsBlack = true; // By default, AI plays as black (second player)
+    private ChessAI chessAI;
     
     public GameManager() {
         this.observers = new ArrayList<>();
@@ -268,9 +275,13 @@ public class GameManager {
             moveHistoryData.add(convertMoveToData(move));
         }
 
+        // Handle null clock values by providing defaults
+        int whiteSeconds = whiteSecondsRemaining != null ? whiteSecondsRemaining : 0;
+        int blackSeconds = blackSecondsRemaining != null ? blackSecondsRemaining : 0;
+        
         return new GameSaveData(boardState, isWhiteTurn, gameState,
                                 whiteCapturedPieces, blackCapturedPieces, moveHistoryData,
-                                whiteSecondsRemaining, blackSecondsRemaining);
+                                whiteSeconds, blackSeconds);
     }
     
     private void restoreFromSaveData(GameSaveData saveData) {
@@ -639,9 +650,97 @@ public class GameManager {
         return clocksRunning;
     }
 
-
+    // ==================== AI INTEGRATION METHODS ====================
     
-
-
+    /**
+     * Enable AI and set which color it plays as.
+     * 
+     * @param enabled Whether AI should be enabled
+     * @param aiPlaysAsBlack Whether AI plays as black (true) or white (false)
+     */
+    public void configureAI(boolean enabled, boolean aiPlaysAsBlack) {
+        this.aiEnabled = enabled;
+        this.aiPlaysAsBlack = aiPlaysAsBlack;
+        
+        if (enabled && chessAI == null) {
+            chessAI = new GreedyAI();
+            DebugUtils.logImportant("AI initialized: " + chessAI.getName() + 
+                                   " playing as " + (aiPlaysAsBlack ? "black" : "white"));
+        }
+    }
+    
+    /**
+     * Check if it's currently the AI's turn to move.
+     * 
+     * @return true if AI should make the next move
+     */
+    public boolean isAITurn() {
+        if (!aiEnabled || chessAI == null) {
+            return false;
+        }
+        
+        // AI's turn if current player matches AI color
+        return currentPlayer.isWhite() != aiPlaysAsBlack;
+    }
+    
+    /**
+     * Get the best move from the AI and attempt to make it.
+     * This method should be called from the UI layer on a background thread.
+     * 
+     * @return true if AI successfully made a move, false otherwise
+     */
+    public boolean makeAIMove() {
+        if (!isAITurn()) {
+            DebugUtils.log("makeAIMove called but it's not AI's turn");
+            return false;
+        }
+        
+        DebugUtils.logImportant("AI is calculating move...");
+        
+        // Get the best move from the AI
+        Move aiMove = chessAI.getBestMove(board, currentPlayer.isWhite());
+        
+        if (aiMove == null) {
+            DebugUtils.logImportant("AI could not find a legal move");
+            return false;
+        }
+        
+        DebugUtils.logImportant("AI selected move: " + aiMove);
+        
+        // Make the move using the normal game flow
+        makeMove(aiMove);
+        
+        return true;
+    }
+    
+    /**
+     * Check if AI is enabled for this game.
+     * 
+     * @return true if AI is enabled
+     */
+    public boolean isAIEnabled() {
+        return aiEnabled;
+    }
+    
+    /**
+     * Check if AI is configured to play as black.
+     * 
+     * @return true if AI plays as black, false if AI plays as white
+     */
+    public boolean isAIAsBlack() {
+        return aiPlaysAsBlack;
+    }
+    
+    /**
+     * Get information about the AI for display purposes.
+     * 
+     * @return AI name if enabled, null otherwise
+     */
+    public String getAIInfo() {
+        if (aiEnabled && chessAI != null) {
+            return chessAI.getName() + " (playing as " + (aiPlaysAsBlack ? "black" : "white") + ")";
+        }
+        return null;
+    }
 
 }
