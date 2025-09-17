@@ -397,16 +397,54 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
     }
 
     public void undoMove() {
-        boolean success = gameManager.undoMove();
-        if (success) {
-            boardPanel.refresh();
-            statusPanel.updateStatus(gameManager.getGameState());
-            statusPanel.setTurn(gameManager.getCurrentPlayer().isWhite());
-            statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory());
+        // In PVAI mode, we want to undo both the AI's move and the player's move
+        // so the player gets back to their turn before their last move
+        if ("PVAI".equals(gameMode) && gameManager.isAIEnabled()) {
+            // First, check if we have at least 2 moves to undo
+            if (Board.getMoveHistory().size() < 2) {
+                JOptionPane.showMessageDialog(this, 
+                        "Need at least 2 moves to undo in AI mode", 
+                        "Undo Move", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            
+            // Undo the AI's move first
+            boolean firstUndo = gameManager.undoMove();
+            if (firstUndo) {
+                // Then undo the player's move
+                boolean secondUndo = gameManager.undoMove();
+                if (secondUndo) {
+                    // Successful double undo - refresh UI
+                    boardPanel.refresh();
+                    statusPanel.updateStatus(gameManager.getGameState());
+                    statusPanel.setTurn(gameManager.getCurrentPlayer().isWhite());
+                    statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory());
+                    DebugUtils.logImportant("Successfully undid both AI and player moves in PVAI mode");
+                } else {
+                    // Second undo failed - this shouldn't happen if we checked properly
+                    JOptionPane.showMessageDialog(this, 
+                            "Failed to undo player move", 
+                            "Undo Move", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                // First undo failed
+                JOptionPane.showMessageDialog(this, 
+                        "Failed to undo AI move", 
+                        "Undo Move", JOptionPane.ERROR_MESSAGE);
+            }
         } else {
-            JOptionPane.showMessageDialog(this, 
-                    "No moves to undo", 
-                    "Undo Move", JOptionPane.INFORMATION_MESSAGE);
+            // PVP mode or AI disabled - undo single move as before
+            boolean success = gameManager.undoMove();
+            if (success) {
+                boardPanel.refresh();
+                statusPanel.updateStatus(gameManager.getGameState());
+                statusPanel.setTurn(gameManager.getCurrentPlayer().isWhite());
+                statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory());
+            } else {
+                JOptionPane.showMessageDialog(this, 
+                        "No moves to undo", 
+                        "Undo Move", JOptionPane.INFORMATION_MESSAGE);
+            }
         }
     }
     
