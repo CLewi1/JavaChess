@@ -275,9 +275,13 @@ public class GameManager {
             moveHistoryData.add(convertMoveToData(move));
         }
 
+        // Handle null clock values by providing defaults
+        int whiteSeconds = whiteSecondsRemaining != null ? whiteSecondsRemaining : 0;
+        int blackSeconds = blackSecondsRemaining != null ? blackSecondsRemaining : 0;
+        
         return new GameSaveData(boardState, isWhiteTurn, gameState,
                                 whiteCapturedPieces, blackCapturedPieces, moveHistoryData,
-                                whiteSecondsRemaining, blackSecondsRemaining);
+                                whiteSeconds, blackSeconds);
     }
     
     private void restoreFromSaveData(GameSaveData saveData) {

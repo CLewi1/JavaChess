@@ -54,10 +54,9 @@ public class MoveHistorySaveTest {
         boolean loadSuccess = newGameManager.loadGame(saveFile);
         assertTrue(loadSuccess, "Game should load successfully");
         
-        // Verify move history was saved (but note: it gets cleared on load for now)
-        // The saved game state contains the move history, but move history in memory is reset
-        // This is acceptable since the board state reflects the final position
-        assertTrue(Board.getMoveHistory().size() == 0, "Move history should be reset after loading");
+        // Verify move history was saved and restored
+        // The move history should be preserved after loading
+        assertTrue(Board.getMoveHistory().size() >= 2, "Move history should be restored after loading");
         
         // The key test: verify the board state was restored correctly
         // The pieces should be in their moved positions
