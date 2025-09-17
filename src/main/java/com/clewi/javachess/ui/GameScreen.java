@@ -19,10 +19,15 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
     private String gameMode = "PVP"; // default to player vs player
     private Timer swingClockTimer;
     private ActionListener backToHomeListener;
+    private boolean timersEnabled = true; // Track if timers are enabled
     
     // Individual timer panels
     private JLabel whiteTimerLabel;
     private JLabel blackTimerLabel;
+    
+    // Player name labels
+    private JLabel whitePlayerLabel;
+    private JLabel blackPlayerLabel;
     
     public GameScreen() {
         setMinimumSize(new Dimension(900, 700));
@@ -136,11 +141,8 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
     // Initialize title based on current game mode
     statusPanel.setGameModeTitle(gameMode);
         
-        // Create timer panels
-        createTimerPanels();
-        
-        // Create board area with timers positioned around it
-        JPanel boardArea = createBoardAreaWithTimers();
+        // Create board area (conditionally with or without timers)
+        JPanel boardArea = createBoardArea();
         
         // Create a centered container that holds both board area and status panel
         JPanel gameContainer = createCenteredGameContainer(boardArea);
@@ -191,8 +193,30 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
     }
     
     public void startNewGame() {
+        // Show game settings dialog
+        GameSettingsDialog settingsDialog = new GameSettingsDialog(this);
+        settingsDialog.setVisible(true);
+        
+        // If user canceled, don't start a new game
+        if (!settingsDialog.isConfirmed()) {
+            return;
+        }
+        
+        // Update timer enabled state
+        timersEnabled = settingsDialog.isTimerEnabled();
+        
         gameManager.resetGame();
-        gameManager.initClocks(300, 2);
+        
+        // Configure clock based on user settings
+        if (settingsDialog.isTimerEnabled()) {
+            gameManager.initClocks(settingsDialog.getSecondsPerPlayer(), settingsDialog.getIncrementSeconds());
+        } else {
+            gameManager.disableClocks();
+        }
+        
+        // Always rebuild the UI layout to ensure player names reflect current game mode
+        refreshGameLayout();
+        
         boardPanel.refresh();
         statusPanel.updateStatus(GameState.PLAYING);
         statusPanel.setTurn(true);
@@ -202,10 +226,49 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory());
         
         // Update timer displays and restart the timer
-        updateTimerLabels();
-        if (swingClockTimer != null) {
-            swingClockTimer.start();
+        if (timersEnabled) {
+            updateTimerLabels();
         }
+        if (swingClockTimer != null) {
+            if (settingsDialog.isTimerEnabled()) {
+                swingClockTimer.start();
+            } else {
+                swingClockTimer.stop();
+            }
+        }
+        
+        // Show game start message in status panel
+        statusPanel.addGameStartMessage();
+    }
+    
+    private void refreshGameLayout() {
+        // Get the main panel and remove the old game container
+        JPanel mainPanel = (JPanel) getContentPane().getComponent(0);
+        Component[] components = mainPanel.getComponents();
+        for (Component comp : components) {
+            if (comp instanceof JPanel) {
+                JPanel panel = (JPanel) comp;
+                // Check if this is the game container (contains board and status)
+                if (panel.getComponentCount() > 0 && panel.getLayout() instanceof FlowLayout) {
+                    mainPanel.remove(panel);
+                    break;
+                }
+            }
+        }
+        
+        // Create new board area with current timer settings
+        JPanel boardArea = createBoardArea();
+        
+        // Create a new centered container
+        JPanel gameContainer = createCenteredGameContainer(boardArea);
+        
+        // Add the new container
+        mainPanel.add(gameContainer, BorderLayout.CENTER);
+        
+        // Refresh the display
+        mainPanel.revalidate();
+        mainPanel.repaint();
+        pack();
     }
 
     /**
@@ -310,6 +373,18 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         setVisible(false);
     }
     
+    private JPanel createBoardArea() {
+        // Always create player name labels
+        createPlayerNameLabels();
+        
+        if (timersEnabled) {
+            createTimerPanels();
+            return createBoardAreaWithTimers();
+        } else {
+            return createBoardAreaWithoutTimers();
+        }
+    }
+    
     private void createTimerPanels() {
         // Create white timer (top-left) - Black pieces start at top
         whiteTimerLabel = new JLabel("05:00", SwingConstants.CENTER);
@@ -326,6 +401,56 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         blackTimerLabel.setOpaque(true);
     }
     
+    private void createPlayerNameLabels() {
+        // Determine player names based on game mode
+        String whitePlayerName, blackPlayerName;
+        if ("PVAI".equals(gameMode)) {
+            whitePlayerName = "Player";  // Human player (white pieces at bottom)
+            blackPlayerName = "AI";      // AI player (black pieces at top)
+        } else {
+            whitePlayerName = "Player 1"; // White player
+            blackPlayerName = "Player 2"; // Black player
+        }
+        
+        // Create white player label (bottom-left, same line as white timer)
+        whitePlayerLabel = new JLabel(whitePlayerName, SwingConstants.LEFT);
+        whitePlayerLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        whitePlayerLabel.setForeground(Color.WHITE);
+        
+        // Create black player label (top-left, same line as black timer)
+        blackPlayerLabel = new JLabel(blackPlayerName, SwingConstants.LEFT);
+        blackPlayerLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        blackPlayerLabel.setForeground(Color.WHITE);
+    }
+    
+    private JPanel createBoardAreaWithoutTimers() {
+        JPanel boardArea = new JPanel();
+        boardArea.setLayout(null); // Use absolute positioning
+        boardArea.setOpaque(false);
+        
+        // Calculate board size
+        int boardSize = 65 * 8; // SQUARE_SIZE * 8
+        
+        // Position the board in the center (same positioning as with timers)
+        int boardX = 120; 
+        int boardY = 60; // Same vertical positioning as with timers
+        boardPanel.setBounds(boardX, boardY, boardSize, boardSize);
+        
+        // Position player name labels aligned with left edge of board, mirroring where timers would be positioned
+        blackPlayerLabel.setBounds(boardX, boardY - 40, 100, 30); // Above board - where black timer would be, aligned with left edge
+        whitePlayerLabel.setBounds(boardX, boardY + boardSize + 10, 100, 30); // Below board - where white timer would be, aligned with left edge
+        
+        // Set preferred size for the container (same as with timers to prevent position shifts)
+        boardArea.setPreferredSize(new Dimension(boardSize + 140, boardSize + 120));
+        
+        // Add components
+        boardArea.add(boardPanel);
+        boardArea.add(whitePlayerLabel);
+        boardArea.add(blackPlayerLabel);
+        
+        return boardArea;
+    }
+    
     private JPanel createBoardAreaWithTimers() {
         JPanel boardArea = new JPanel();
         boardArea.setLayout(null); // Use absolute positioning
@@ -334,8 +459,8 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         // Calculate board size
         int boardSize = 65 * 8; // SQUARE_SIZE * 8
         
-        // Position the board in the center
-        int boardX = 20;
+        // Position the board in the center (more space for player names on left)
+        int boardX = 120;
         int boardY = 60;
         boardPanel.setBounds(boardX, boardY, boardSize, boardSize);
         
@@ -345,13 +470,19 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         // Position black timer top-right of board
         blackTimerLabel.setBounds(boardX + boardSize - 100, boardY - 40, 100, 30);
         
-        // Set preferred size for the container
-        boardArea.setPreferredSize(new Dimension(boardSize + 40, boardSize + 120));
+        // Position player name labels aligned with left edge of board, mirroring the timer positions exactly
+        blackPlayerLabel.setBounds(boardX, boardY - 40, 100, 30); // Above board - same Y as black timer, aligned with left edge
+        whitePlayerLabel.setBounds(boardX, boardY + boardSize + 10, 100, 30); // Below board - same Y as white timer, aligned with left edge
+        
+        // Set preferred size for the container (wider to accommodate player names)
+        boardArea.setPreferredSize(new Dimension(boardSize + 140, boardSize + 120));
         
         // Add components
         boardArea.add(boardPanel);
         boardArea.add(whiteTimerLabel);
         boardArea.add(blackTimerLabel);
+        boardArea.add(whitePlayerLabel);
+        boardArea.add(blackPlayerLabel);
         
         return boardArea;
     }
@@ -373,6 +504,10 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
     }
     
     private void updateTimerLabels() {
+        if (!timersEnabled || whiteTimerLabel == null || blackTimerLabel == null) {
+            return; // Skip update if timers are disabled or not created
+        }
+        
         SwingUtilities.invokeLater(() -> {
             String whiteText = formatSecondsAsClock(gameManager.getWhiteSecondsRemaining());
             String blackText = formatSecondsAsClock(gameManager.getBlackSecondsRemaining());
@@ -381,7 +516,10 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         });
     }
     
-    private String formatSecondsAsClock(int seconds) {
+    private String formatSecondsAsClock(Integer seconds) {
+        if (seconds == null) {
+            return "00:00";
+        }
         int s = Math.max(0, seconds);
         int m = s / 60;
         int sec = s % 60;
