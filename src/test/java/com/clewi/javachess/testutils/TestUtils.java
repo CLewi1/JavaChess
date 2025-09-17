@@ -67,4 +67,46 @@ public final class TestUtils {
         board.trackPiece(b);
         return b;
     }
+    
+    /**
+     * Sets up a typical middlegame position with multiple pieces for both sides
+     */
+    public static void setupMiddlegamePosition(Board board) {
+        board.clear();
+        
+        // White pieces - scattered middlegame setup
+        placeKing(board, 6, 7, true);        // White king on g1
+        placeQueen(board, 3, 4, true);       // White queen on d4
+        placePawn(board, 4, 5, true);        // White pawn on e3
+        placePawn(board, 5, 6, true);        // White pawn on f2
+        placeKnight(board, 5, 5, true);      // White knight on f3
+        placeBishop(board, 2, 4, true);      // White bishop on c4
+        placeRook(board, 0, 7, true);        // White rook on a1
+        
+        // Black pieces - defending middlegame setup
+        placeKing(board, 4, 0, false);       // Black king on e8
+        placeQueen(board, 3, 1, false);      // Black queen on d7
+        placePawn(board, 4, 2, false);       // Black pawn on e6
+        placePawn(board, 3, 2, false);       // Black pawn on d6
+        placeKnight(board, 6, 0, false);     // Black knight on g8
+        placeBishop(board, 5, 0, false);     // Black bishop on f8
+        placeRook(board, 7, 0, false);       // Black rook on h8
+    }
+    
+    /**
+     * Sets up a typical endgame position with fewer pieces
+     */
+    public static void setupEndgamePosition(Board board) {
+        board.clear();
+        
+        // White pieces - endgame with king, queen, and pawn
+        placeKing(board, 6, 6, true);        // White king on g2
+        placeQueen(board, 3, 3, true);       // White queen on d5
+        placePawn(board, 4, 4, true);        // White pawn on e4
+        
+        // Black pieces - defending endgame with king and rook
+        placeKing(board, 1, 1, false);       // Black king on b7
+        placeRook(board, 7, 1, false);       // Black rook on h7
+        placePawn(board, 2, 2, false);       // Black pawn on c6
+    }
 }
