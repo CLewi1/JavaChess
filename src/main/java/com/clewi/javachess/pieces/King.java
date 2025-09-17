@@ -56,8 +56,20 @@ public class King extends Piece {
         
         // Check if any opponent piece can attack this square
         for (Piece piece : board.getPieces(!this.isWhite())) {
-            if (piece.canMove(x, y)) {
-                return true;
+            // Special handling for Kings to avoid recursion
+            if (piece instanceof King) {
+                // Check if the opponent king can attack this square directly
+                // (within one square distance, without checking if the square is under attack)
+                int kingX = piece.getX();
+                int kingY = piece.getY();
+                if (Math.abs(x - kingX) <= 1 && Math.abs(y - kingY) <= 1 && !(x == kingX && y == kingY)) {
+                    return true;
+                }
+            } else {
+                // For non-King pieces, use normal canMove() check
+                if (piece.canMove(x, y)) {
+                    return true;
+                }
             }
         }
         return false;

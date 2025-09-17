@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.clewi.javachess.game.GameManager;
 import com.clewi.javachess.model.Board;
 import com.clewi.javachess.model.GameState;
+import com.clewi.javachess.model.Move;
 
 import com.clewi.javachess.testutils.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,20 +36,23 @@ public class AIEdgeCaseTest {
     @Test
     public void testAIWithOnlyKings() {
         // Set up king vs king endgame
-        // KNOWN BUG: This test reveals a StackOverflowError in King.canMove()
-        // The bug is caused by infinite recursion between King.canMove() and King.isSquareUnderAttack()
+        // BUG FIXED: King recursion bug has been resolved
         board.clear();
         TestUtils.placeKing(board, 4, 4, true);
         TestUtils.placeKing(board, 4, 6, false);
         
-        // This should throw StackOverflowError due to infinite recursion bug
-        assertThrows(StackOverflowError.class, () -> {
-            greedyAI.getBestMove(board, true);
-        }, "AI should trigger StackOverflowError due to King infinite recursion bug");
+        // AI should find legal king moves without infinite recursion
+        Move whiteMove = greedyAI.getBestMove(board, true);
+        Move blackMove = greedyAI.getBestMove(board, false);
         
-        assertThrows(StackOverflowError.class, () -> {
-            greedyAI.getBestMove(board, false);
-        }, "AI should trigger StackOverflowError due to King infinite recursion bug");
+        assertNotNull(whiteMove, "White AI should find a valid king move");
+        assertNotNull(blackMove, "Black AI should find a valid king move");
+        
+        // Verify moves are valid king moves (one square distance)
+        assertTrue(Math.abs(whiteMove.getDestination().x - 4) <= 1, "White king move should be within one square");
+        assertTrue(Math.abs(whiteMove.getDestination().y - 4) <= 1, "White king move should be within one square");
+        assertTrue(Math.abs(blackMove.getDestination().x - 4) <= 1, "Black king move should be within one square");
+        assertTrue(Math.abs(blackMove.getDestination().y - 6) <= 1, "Black king move should be within one square");
     }
 
     @Test
