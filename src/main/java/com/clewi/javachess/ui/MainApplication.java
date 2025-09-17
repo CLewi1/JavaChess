@@ -40,8 +40,6 @@ public class MainApplication {
     private void startGame(String gameMode) {
         homeScreen.hideScreen();
         
-        // Start a new game regardless of mode (for now both modes do the same thing)
-        // inform the game screen which mode was chosen so UI can update
         gameScreen.setGameMode(gameMode);
         gameScreen.startNewGame();
         gameScreen.showScreen();

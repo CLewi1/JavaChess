@@ -22,7 +22,6 @@ public class GameSettingsDialog extends JDialog {
         setLayout(new BorderLayout());
         setResizable(false);
         
-        // Create main panel with dark theme
         JPanel mainPanel = new JPanel();
         mainPanel.setBackground(new Color(48, 46, 43));
         mainPanel.setLayout(new GridBagLayout());
@@ -32,7 +31,6 @@ public class GameSettingsDialog extends JDialog {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.anchor = GridBagConstraints.WEST;
         
-        // Title
         JLabel titleLabel = new JLabel("Configure Game Settings");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
         titleLabel.setForeground(Color.WHITE);
@@ -79,7 +77,6 @@ public class GameSettingsDialog extends JDialog {
         incrementSpinner.setPreferredSize(new Dimension(80, 25));
         mainPanel.add(incrementSpinner, gbc);
         
-        // Button panel
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.setBackground(new Color(48, 46, 43));
         
@@ -124,7 +121,6 @@ public class GameSettingsDialog extends JDialog {
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
                 
-                // Button gradient with gray colors
                 GradientPaint gradient;
                 if (getModel().isPressed()) {
                     gradient = new GradientPaint(
@@ -146,7 +142,6 @@ public class GameSettingsDialog extends JDialog {
                 g2d.setPaint(gradient);
                 g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
                 
-                // Button border
                 g2d.setColor(new Color(30, 30, 30));
                 g2d.setStroke(new BasicStroke(1));
                 g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);

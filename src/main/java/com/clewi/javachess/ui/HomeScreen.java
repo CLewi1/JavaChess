@@ -22,7 +22,6 @@ public class HomeScreen extends JFrame {
         setMinimumSize(new Dimension(900, 700));
         setLocationRelativeTo(null);
         
-        // Create main panel with gradient background
         JPanel mainPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -38,7 +37,6 @@ public class HomeScreen extends JFrame {
         
         GridBagConstraints gbc = new GridBagConstraints();
         
-        // Title
         JLabel titleLabel = new JLabel("JavaChess");
         titleLabel.setFont(new Font("Serif", Font.BOLD, 72));
         titleLabel.setForeground(Color.WHITE);
@@ -48,7 +46,6 @@ public class HomeScreen extends JFrame {
         gbc.insets = new Insets(50, 50, 100, 50);
         mainPanel.add(titleLabel, gbc);
         
-        // Subtitle
         JLabel subtitleLabel = new JLabel("A Classic Game of Strategy");
         subtitleLabel.setFont(new Font("SansSerif", Font.ITALIC, 24));
         subtitleLabel.setForeground(new Color(200, 200, 200));
@@ -57,12 +54,10 @@ public class HomeScreen extends JFrame {
         gbc.insets = new Insets(0, 50, 50, 50);
         mainPanel.add(subtitleLabel, gbc);
         
-        // Button panel
         JPanel buttonPanel = new JPanel();
         buttonPanel.setOpaque(false);
         buttonPanel.setLayout(new GridBagLayout());
         
-        // Player vs Player button
         JButton pvpButton = createStyledButton("Player vs Player");
         pvpButton.addActionListener(e -> {
             if (gameStartListener != null) {
@@ -70,7 +65,6 @@ public class HomeScreen extends JFrame {
             }
         });
         
-        // Player vs AI button
         JButton pvaiButton = createStyledButton("Player vs AI");
         pvaiButton.addActionListener(e -> {
             if (gameStartListener != null) {

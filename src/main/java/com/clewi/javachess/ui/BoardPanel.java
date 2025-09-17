@@ -33,7 +33,6 @@ public class BoardPanel extends JPanel {
         setFocusable(true);
         requestFocusInWindow();
         
-        // Make the panel transparent so gradient shows through
         setOpaque(false);
     }
 
@@ -60,7 +59,6 @@ public class BoardPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         
-        // Draw the board squares first
         drawBoard(g);
         
         // Draw the selected square highlight if any
@@ -71,10 +69,7 @@ public class BoardPanel extends JPanel {
                       SQUARE_SIZE, SQUARE_SIZE);
         }
         
-        // Draw the pieces
         drawPieces(g);
-        
-        // Draw coordinates last so they appear on top
         drawCoordinates(g);
     }
 

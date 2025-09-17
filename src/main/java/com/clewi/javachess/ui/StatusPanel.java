@@ -24,16 +24,14 @@ public class StatusPanel extends JPanel {
         setBackground(new Color(38,36,33));
         setOpaque(true);
         
-        // Title panel
         JPanel titlePanel = new JPanel();
         titlePanel.setOpaque(false);
-        titlePanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0)); // Add 20px bottom margin
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
         titleLabel = new JLabel("Chess Game");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
         titleLabel.setForeground(Color.WHITE);
         titlePanel.add(titleLabel);
         
-        // Move table panel (will be in center)
         JPanel tablePanel = new JPanel(new BorderLayout());
         tablePanel.setOpaque(false);
         
@@ -42,7 +40,6 @@ public class StatusPanel extends JPanel {
         turnLabel = new JLabel("White's turn");
         turnLabel.setForeground(Color.WHITE);
 
-        // Move history table (three columns: # | White | Black)
         tableModel = new DefaultTableModel(new Object[] { "#", "White", "Black" }, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -56,13 +53,12 @@ public class StatusPanel extends JPanel {
         moveTable.setCellSelectionEnabled(false);
         moveTable.setFocusable(false);
 
-        // Set dark theme colors for the table
         moveTable.setBackground(new Color(40, 40, 40));
         moveTable.setForeground(Color.WHITE);
         moveTable.setGridColor(new Color(60, 60, 60));
         moveTable.setSelectionBackground(new Color(70, 70, 70));
         moveTable.setSelectionForeground(Color.WHITE);
-        
+
         // Custom renderer for alternating row colors
         DefaultTableCellRenderer renderer = new DefaultTableCellRenderer() {
             @Override
@@ -72,9 +68,9 @@ public class StatusPanel extends JPanel {
                 
                 if (!isSelected) {
                     if (row % 2 == 0) {
-                        comp.setBackground(new Color(40, 40, 40)); // Dark gray for even rows
+                        comp.setBackground(new Color(40, 40, 40));
                     } else {
-                        comp.setBackground(new Color(50, 50, 50)); // Slightly lighter for odd rows
+                        comp.setBackground(new Color(50, 50, 50));
                     }
                 }
                 comp.setForeground(Color.WHITE);
@@ -83,17 +79,13 @@ public class StatusPanel extends JPanel {
             }
         };
         
-        // Apply the renderer to all three columns
-        moveTable.getColumnModel().getColumn(0).setCellRenderer(renderer); // # column
-        moveTable.getColumnModel().getColumn(1).setCellRenderer(renderer); // White column
-        moveTable.getColumnModel().getColumn(2).setCellRenderer(renderer); // Black column
-        
-        // Style the table header
+        moveTable.getColumnModel().getColumn(0).setCellRenderer(renderer);
+        moveTable.getColumnModel().getColumn(1).setCellRenderer(renderer);
+        moveTable.getColumnModel().getColumn(2).setCellRenderer(renderer);
         moveTable.getTableHeader().setBackground(new Color(30, 30, 30));
         moveTable.getTableHeader().setForeground(Color.WHITE);
         moveTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
         
-        // Center the header text
         DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
         headerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
         headerRenderer.setBackground(new Color(30, 30, 30));
@@ -101,35 +93,29 @@ public class StatusPanel extends JPanel {
         headerRenderer.setFont(new Font("Arial", Font.BOLD, 12));
         moveTable.getTableHeader().setDefaultRenderer(headerRenderer);
         
-        // Disable column reordering
         moveTable.getTableHeader().setReorderingAllowed(false);
         
-        // Set column widths (narrower for move numbers)
-        moveTable.getColumnModel().getColumn(0).setPreferredWidth(30); // # column
-        moveTable.getColumnModel().getColumn(1).setPreferredWidth(85); // White column
-        moveTable.getColumnModel().getColumn(2).setPreferredWidth(85); // Black column
+        moveTable.getColumnModel().getColumn(0).setPreferredWidth(30);
+        moveTable.getColumnModel().getColumn(1).setPreferredWidth(85);
+        moveTable.getColumnModel().getColumn(2).setPreferredWidth(85);
         moveTable.getColumnModel().getColumn(0).setMaxWidth(40);
         moveTable.getColumnModel().getColumn(0).setMinWidth(25);
         
-        // Remove table border completely
         moveTable.setBorder(null);
         moveTable.setShowGrid(false);
-        moveTable.setIntercellSpacing(new Dimension(0, 0)); // Remove spacing between cells
+        moveTable.setIntercellSpacing(new Dimension(0, 0));
         
-        // Increase row height for better spacing
-        moveTable.setRowHeight(30); // Default is usually around 16-18, this gives more space
+        moveTable.setRowHeight(30);
 
         JScrollPane scroll = new JScrollPane(moveTable);
-        scroll.setBorder(null); // Remove the scroll pane border
-        scroll.setViewportBorder(null); // Remove viewport border
-        scroll.getViewport().setBackground(new Color(40, 40, 40)); // Match table background
+        scroll.setBorder(null);
+        scroll.setViewportBorder(null);
+        scroll.getViewport().setBackground(new Color(40, 40, 40));
         scroll.setBackground(new Color(40, 40, 40));
         
-        // Make scroll bar always visible
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         
-        // Style the scroll bar for dark mode
         JScrollBar verticalScrollBar = scroll.getVerticalScrollBar();
         verticalScrollBar.setBackground(new Color(30, 30, 30));
         verticalScrollBar.setUI(new javax.swing.plaf.basic.BasicScrollBarUI() {
