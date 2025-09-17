@@ -260,8 +260,50 @@ public class StatusPanel extends JPanel {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 5));
         buttonPanel.setOpaque(false);
         
-        JButton undoButton = new JButton("Undo Move");
-        undoButton.setPreferredSize(new Dimension(120, 50)); // Compact button size
+        JButton undoButton = new JButton("Undo Move") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                
+                // Button gradient with gray colors
+                GradientPaint gradient;
+                if (getModel().isPressed()) {
+                    gradient = new GradientPaint(
+                        0, 0, new Color(50, 50, 50),
+                        0, getHeight(), new Color(30, 30, 30)
+                    );
+                } else if (getModel().isRollover()) {
+                    gradient = new GradientPaint(
+                        0, 0, new Color(80, 80, 80),
+                        0, getHeight(), new Color(60, 60, 60)
+                    );
+                } else {
+                    gradient = new GradientPaint(
+                        0, 0, new Color(70, 70, 70),
+                        0, getHeight(), new Color(50, 50, 50)
+                    );
+                }
+                
+                g2d.setPaint(gradient);
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+                
+                // Button border
+                g2d.setColor(new Color(30, 30, 30));
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+                
+                super.paintComponent(g);
+            }
+        };
+        
+        undoButton.setFont(new Font("SansSerif", Font.BOLD, 16));
+        undoButton.setForeground(Color.WHITE);
+        undoButton.setPreferredSize(new Dimension(140, 50));
+        undoButton.setFocusPainted(false);
+        undoButton.setBorderPainted(false);
+        undoButton.setContentAreaFilled(false);
+        undoButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         undoButton.addActionListener(e -> gameController.undoMove());
         
