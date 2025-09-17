@@ -77,8 +77,11 @@ javachess/
     - [x] Undo / take-back
     - [x] Timer / clocks
     - [x] Undo moves after load
+    - [x] Redesign UI
+    - [x] AI Opponent
+
 - Planned:
-    - [ ] AI Opponent
-    - [ ] Redesign UI
+
+
 
 
