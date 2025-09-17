@@ -3,6 +3,7 @@ package com.clewi.javachess.ui;
 import com.clewi.javachess.model.GameState;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 import java.awt.*;
@@ -11,49 +12,35 @@ import java.util.List;
 public class StatusPanel extends JPanel {
     private JLabel statusLabel;
     private JLabel turnLabel;
-    private ChessGUI parentGUI;
-    private JButton newGameButton;
+    private JLabel titleLabel;
     private DefaultTableModel tableModel;
     private JTable moveTable;
-    private JPanel whiteTimerPanel;
-    private JLabel whiteTimerLabel;
-    private JPanel blackTimerPanel;
-    private JLabel blackTimerLabel;
+    private JTextArea messageArea;
 
-    public StatusPanel(ChessGUI parent) {
-        this.parentGUI = parent;
+    public StatusPanel(GameController gameController) {
         setPreferredSize(new Dimension(200, 400));
         setLayout(new BorderLayout());
         
-        // Title panel
+        setBackground(new Color(38,36,33));
+        setOpaque(true);
+        
         JPanel titlePanel = new JPanel();
-        JLabel titleLabel = new JLabel("Chess Game");
+        titlePanel.setOpaque(false);
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+        titleLabel = new JLabel("Chess Game");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        titleLabel.setForeground(Color.WHITE);
         titlePanel.add(titleLabel);
         
-        // Status info panel
-        JPanel infoPanel = new JPanel();
-        infoPanel.setLayout(new GridLayout(5, 1, 5, 5));
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        tablePanel.setOpaque(false);
         
         statusLabel = new JLabel("Game in progress");
+        statusLabel.setForeground(Color.WHITE);
         turnLabel = new JLabel("White's turn");
+        turnLabel.setForeground(Color.WHITE);
 
-        whiteTimerPanel = new JPanel(new BorderLayout());
-        whiteTimerPanel.setBorder(BorderFactory.createTitledBorder("White Timer"));
-        whiteTimerLabel = new JLabel("00:00");
-        whiteTimerPanel.add(whiteTimerLabel, BorderLayout.CENTER);
-        blackTimerPanel = new JPanel(new BorderLayout());
-        blackTimerPanel.setBorder(BorderFactory.createTitledBorder("Black Timer"));
-        blackTimerLabel = new JLabel("00:00");
-        blackTimerPanel.add(blackTimerLabel, BorderLayout.CENTER);
-        
-        infoPanel.add(statusLabel);
-        infoPanel.add(turnLabel);
-        infoPanel.add(whiteTimerPanel);
-        infoPanel.add(blackTimerPanel);
-
-        // Move history table (two columns: White | Black)
-        tableModel = new DefaultTableModel(new Object[] { "White", "Black" }, 0) {
+        tableModel = new DefaultTableModel(new Object[] { "#", "White", "Black" }, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -62,73 +49,390 @@ public class StatusPanel extends JPanel {
         moveTable = new JTable(tableModel);
         moveTable.setFillsViewportHeight(true);
         moveTable.setRowSelectionAllowed(false);
+        moveTable.setColumnSelectionAllowed(false);
+        moveTable.setCellSelectionEnabled(false);
+        moveTable.setFocusable(false);
+
+        moveTable.setBackground(new Color(40, 40, 40));
+        moveTable.setForeground(Color.WHITE);
+        moveTable.setGridColor(new Color(60, 60, 60));
+        moveTable.setSelectionBackground(new Color(70, 70, 70));
+        moveTable.setSelectionForeground(Color.WHITE);
+
+        // Custom renderer for alternating row colors
+        DefaultTableCellRenderer renderer = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                Component comp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                
+                if (!isSelected) {
+                    if (row % 2 == 0) {
+                        comp.setBackground(new Color(40, 40, 40));
+                    } else {
+                        comp.setBackground(new Color(50, 50, 50));
+                    }
+                }
+                comp.setForeground(Color.WHITE);
+                setHorizontalAlignment(SwingConstants.CENTER);
+                return comp;
+            }
+        };
+        
+        moveTable.getColumnModel().getColumn(0).setCellRenderer(renderer);
+        moveTable.getColumnModel().getColumn(1).setCellRenderer(renderer);
+        moveTable.getColumnModel().getColumn(2).setCellRenderer(renderer);
+        moveTable.getTableHeader().setBackground(new Color(30, 30, 30));
+        moveTable.getTableHeader().setForeground(Color.WHITE);
+        moveTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+        
+        DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
+        headerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        headerRenderer.setBackground(new Color(30, 30, 30));
+        headerRenderer.setForeground(Color.WHITE);
+        headerRenderer.setFont(new Font("Arial", Font.BOLD, 12));
+        moveTable.getTableHeader().setDefaultRenderer(headerRenderer);
+        
+        moveTable.getTableHeader().setReorderingAllowed(false);
+        
+        moveTable.getColumnModel().getColumn(0).setPreferredWidth(30);
+        moveTable.getColumnModel().getColumn(1).setPreferredWidth(85);
+        moveTable.getColumnModel().getColumn(2).setPreferredWidth(85);
+        moveTable.getColumnModel().getColumn(0).setMaxWidth(40);
+        moveTable.getColumnModel().getColumn(0).setMinWidth(25);
+        
+        moveTable.setBorder(null);
+        moveTable.setShowGrid(false);
+        moveTable.setIntercellSpacing(new Dimension(0, 0));
+        
+        moveTable.setRowHeight(30);
 
         JScrollPane scroll = new JScrollPane(moveTable);
-        add(scroll, BorderLayout.CENTER);
-        infoPanel.add(scroll);
-
-        // Button panel
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(4, 1, 5, 5));
+        scroll.setBorder(null);
+        scroll.setViewportBorder(null);
+        scroll.getViewport().setBackground(new Color(40, 40, 40));
+        scroll.setBackground(new Color(40, 40, 40));
         
-        newGameButton = new JButton("New Game");
-        JButton saveButton = new JButton("Save Game");
-        JButton loadButton = new JButton("Load Game");
-        JButton undoButton = new JButton("Undo Move");
-
-        newGameButton.addActionListener(e -> parentGUI.startNewGame());
-        saveButton.addActionListener(e -> parentGUI.saveGame());
-        loadButton.addActionListener(e -> parentGUI.loadGame());
-        undoButton.addActionListener(e -> parentGUI.undoMove());
+        scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         
-        buttonPanel.add(newGameButton);
-        buttonPanel.add(saveButton);
-        buttonPanel.add(loadButton);
+        JScrollBar verticalScrollBar = scroll.getVerticalScrollBar();
+        verticalScrollBar.setBackground(new Color(30, 30, 30));
+        verticalScrollBar.setUI(new javax.swing.plaf.basic.BasicScrollBarUI() {
+            @Override
+            protected void configureScrollBarColors() {
+                this.thumbColor = new Color(60, 60, 60);
+                this.trackColor = new Color(30, 30, 30);
+            }
+            
+            @Override
+            protected void paintThumb(Graphics g, JComponent c, Rectangle thumbBounds) {
+                if (thumbBounds.isEmpty() || !scrollbar.isEnabled()) {
+                    return;
+                }
+                
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(thumbColor);
+                
+                // Create rounded rectangle with padding for better appearance
+                int arc = 8; // Roundness of corners
+                int padding = 2;
+                g2.fillRoundRect(thumbBounds.x + padding, thumbBounds.y + padding, 
+                               thumbBounds.width - 2 * padding, thumbBounds.height - 2 * padding, arc, arc);
+                g2.dispose();
+            }
+            
+            @Override
+            protected void paintTrack(Graphics g, JComponent c, Rectangle trackBounds) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(trackColor);
+                g2.fillRect(trackBounds.x, trackBounds.y, trackBounds.width, trackBounds.height);
+                g2.dispose();
+            }
+            
+            @Override
+            protected JButton createDecreaseButton(int orientation) {
+                JButton button = new JButton();
+                button.setPreferredSize(new Dimension(0, 0));
+                return button;
+            }
+            
+            @Override
+            protected JButton createIncreaseButton(int orientation) {
+                JButton button = new JButton();
+                button.setPreferredSize(new Dimension(0, 0));
+                return button;
+            }
+        });
+        
+        // Set preferred size for scroll pane to make table smaller
+        scroll.setPreferredSize(new Dimension(200, 150)); // Smaller height for move table
+        
+        // Add scroll pane to table panel
+        tablePanel.add(scroll, BorderLayout.CENTER);
+        
+        // Create chat box area for game messages (like chess.com)
+        JPanel chatBoxContainer = new JPanel(new BorderLayout());
+        chatBoxContainer.setBackground(new Color(50, 50, 50));
+        chatBoxContainer.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(70, 70, 70), 1),
+            BorderFactory.createEmptyBorder(8, 8, 8, 8)
+        ));
+        chatBoxContainer.setOpaque(true);
+        chatBoxContainer.setPreferredSize(new Dimension(200, 150));
+        
+        // Create message area with scrollable text area
+        JTextArea messageArea = new JTextArea();
+        messageArea.setBackground(new Color(50, 50, 50));
+        messageArea.setForeground(Color.WHITE);
+        messageArea.setFont(new Font("Arial", Font.PLAIN, 12));
+        messageArea.setEditable(false);
+        messageArea.setWrapStyleWord(true);
+        messageArea.setLineWrap(true);
+        messageArea.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        
+        JScrollPane messageScrollPane = new JScrollPane(messageArea);
+        messageScrollPane.setBorder(null);
+        messageScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        messageScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        messageScrollPane.getViewport().setBackground(new Color(50, 50, 50));
+        messageScrollPane.setBackground(new Color(50, 50, 50));
+        
+        // Style the message scroll bar
+        JScrollBar messageScrollBar = messageScrollPane.getVerticalScrollBar();
+        messageScrollBar.setBackground(new Color(30, 30, 30));
+        messageScrollBar.setUI(new javax.swing.plaf.basic.BasicScrollBarUI() {
+            @Override
+            protected void configureScrollBarColors() {
+                this.thumbColor = new Color(60, 60, 60);
+                this.trackColor = new Color(30, 30, 30);
+            }
+            
+            @Override
+            protected JButton createDecreaseButton(int orientation) {
+                JButton button = new JButton();
+                button.setPreferredSize(new Dimension(0, 0));
+                return button;
+            }
+            
+            @Override
+            protected JButton createIncreaseButton(int orientation) {
+                JButton button = new JButton();
+                button.setPreferredSize(new Dimension(0, 0));
+                return button;
+            }
+        });
+        
+        chatBoxContainer.add(messageScrollPane, BorderLayout.CENTER);
+        
+        // Store reference to message area for adding messages
+        this.messageArea = messageArea;
+        
+        // Add initial welcome message
+        addMessage("Game ready. Make your move!", Color.WHITE);
+        
+        // Create a wrapper panel for spacing between table and chat box
+        JPanel chatBoxWrapper = new JPanel(new BorderLayout());
+        chatBoxWrapper.setOpaque(false);
+        chatBoxWrapper.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0)); // 10px top margin
+        chatBoxWrapper.add(chatBoxContainer, BorderLayout.CENTER);
+        
+        // Add chat box below the table with spacing
+        tablePanel.add(chatBoxWrapper, BorderLayout.SOUTH);
+
+        // Button panel - make it minimal to stay at very bottom
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 5));
+        buttonPanel.setOpaque(false);
+        
+        JButton undoButton = new JButton("Undo Move") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                
+                // Button gradient with gray colors
+                GradientPaint gradient;
+                if (getModel().isPressed()) {
+                    gradient = new GradientPaint(
+                        0, 0, new Color(50, 50, 50),
+                        0, getHeight(), new Color(30, 30, 30)
+                    );
+                } else if (getModel().isRollover()) {
+                    gradient = new GradientPaint(
+                        0, 0, new Color(80, 80, 80),
+                        0, getHeight(), new Color(60, 60, 60)
+                    );
+                } else {
+                    gradient = new GradientPaint(
+                        0, 0, new Color(70, 70, 70),
+                        0, getHeight(), new Color(50, 50, 50)
+                    );
+                }
+                
+                g2d.setPaint(gradient);
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+                
+                // Button border
+                g2d.setColor(new Color(30, 30, 30));
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 15, 15);
+                
+                super.paintComponent(g);
+            }
+        };
+        
+        undoButton.setFont(new Font("SansSerif", Font.BOLD, 16));
+        undoButton.setForeground(Color.WHITE);
+        undoButton.setPreferredSize(new Dimension(140, 50));
+        undoButton.setFocusPainted(false);
+        undoButton.setBorderPainted(false);
+        undoButton.setContentAreaFilled(false);
+        undoButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        undoButton.addActionListener(e -> gameController.undoMove());
+        
         buttonPanel.add(undoButton);
 
         // Add all panels to the status panel
         add(titlePanel, BorderLayout.NORTH);
-        add(infoPanel, BorderLayout.CENTER);
+        add(tablePanel, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
+    }
+    
+    /**
+     * Add a message to the chat box area
+     */
+    public void addMessage(String message, Color color) {
+        SwingUtilities.invokeLater(() -> {
+            if (messageArea.getText().length() > 0) {
+                messageArea.append("\n");
+            }
+            
+            // Get current text and add colored message
+            String currentText = messageArea.getText();
+            messageArea.setText(currentText);
+            
+            // Create a styled document approach isn't easily supported in JTextArea,
+            // so we'll use a simple approach with prefixes for different message types
+            String prefix = "";
+            if (color == Color.RED) {
+                prefix = "⚠ ";
+            } else if (color == Color.GREEN) {
+                prefix = "✓ ";
+            } else if (color == Color.YELLOW || color == Color.ORANGE) {
+                prefix = "! ";
+            }
+            
+            messageArea.append(prefix + message);
+            
+            // Auto-scroll to bottom
+            messageArea.setCaretPosition(messageArea.getDocument().getLength());
+        });
+    }
+    
+    /**
+     * Add an error message in red
+     */
+    public void addErrorMessage(String message) {
+        addMessage(message, Color.RED);
+    }
+    
+    /**
+     * Add a success message in green
+     */
+    public void addSuccessMessage(String message) {
+        addMessage(message, Color.GREEN);
+    }
+    
+    /**
+     * Add a warning message in yellow
+     */
+    public void addWarningMessage(String message) {
+        addMessage(message, Color.YELLOW);
+    }
+    
+    /**
+     * Clear all messages from the chat box
+     */
+    public void clearMessages() {
+        SwingUtilities.invokeLater(() -> {
+            messageArea.setText("");
+        });
+    }
+    
+    /**
+     * Add a game start message
+     */
+    public void addGameStartMessage() {
+        clearMessages();
+        addSuccessMessage("New game started!");
+    }
+    
+    /**
+     * Add an invalid move message (like chess.com warnings)
+     */
+    public void addInvalidMoveMessage(String reason) {
+        addErrorMessage("Invalid move: " + reason);
+    }
+    
+    /**
+     * Add a turn violation message
+     */
+    public void addTurnViolationMessage(boolean isWhiteTurn) {
+        String currentPlayer = isWhiteTurn ? "White" : "Black";
+        addErrorMessage("It is " + currentPlayer + "'s turn");
+    }
+    
+    /**
+     * Add a check warning message
+     */
+    public void addCheckWarning() {
+        addErrorMessage("Cannot move, king in check");
+    }
 
-        
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+    /**
+     * Update the title to reflect the selected game mode.
+     * Accepted values for mode are: "PVP" (player vs player) and "PVAI" (player vs AI).
+     * Any other value will default to "Player vs. Player".
+     */
+    public void setGameModeTitle(String mode) {
+        if (mode != null && mode.equals("PVAI")) {
+            titleLabel.setText("Player vs. AI");
+        } else {
+            titleLabel.setText("Player vs. Player");
+        }
     }
     
     public void updateStatus(GameState state) {
         switch (state) {
             case PLAYING:
-                statusLabel.setText("Game in progress");
-                statusLabel.setForeground(Color.BLACK);
+                // Don't add message for normal playing state
                 break;
             case CHECK:
-                statusLabel.setText("Check!");
-                statusLabel.setForeground(Color.RED);
+                addWarningMessage("Check!");
                 break;
             case CHECKMATE:
-                statusLabel.setText("Checkmate!");
-                statusLabel.setForeground(Color.RED);
+                addErrorMessage("Checkmate! Game over.");
                 break;
             case STALEMATE:
-                statusLabel.setText("Stalemate");
-                statusLabel.setForeground(Color.BLUE);
+                addMessage("Stalemate - Game is a draw.", Color.CYAN);
                 break;
             case DRAW:
-                statusLabel.setText("Draw");
-                statusLabel.setForeground(Color.BLUE);
+                addMessage("Game ended in a draw.", Color.CYAN);
                 break;
             case TIMEOUT:
-                statusLabel.setText("Timeout");
-                statusLabel.setForeground(Color.RED);
+                addErrorMessage("Time's up! Game over.");
                 break;
             default:
-                statusLabel.setText("Unknown state");
-                statusLabel.setForeground(Color.BLACK);
+                addMessage("Unknown game state.", Color.WHITE);
         }
     }
     
     public void setTurn(boolean isWhite) {
-        turnLabel.setText((isWhite ? "White" : "Black") + "'s turn");
+        // Don't add a message for normal turn changes
+        // Messages will only appear for violations via addTurnViolationMessage()
     }
 
      public void updateMoveHistory(List<?> moves) {
@@ -142,9 +446,10 @@ public class StatusPanel extends JPanel {
             for (int r = 0; r < rows; r++) {
                 int whiteIndex = r * 2;
                 int blackIndex = whiteIndex + 1;
+                String moveNumber = String.valueOf(r + 1) + "."; // Move numbers start from 1
                 String whiteText = whiteIndex < moves.size() && moves.get(whiteIndex) != null ? moves.get(whiteIndex).toString() : "";
                 String blackText = blackIndex < moves.size() && moves.get(blackIndex) != null ? moves.get(blackIndex).toString() : "";
-                tableModel.addRow(new Object[] { whiteText, blackText });
+                tableModel.addRow(new Object[] { moveNumber, whiteText, blackText });
             }
 
             // Keep scroll at bottom to show latest moves
@@ -155,21 +460,4 @@ public class StatusPanel extends JPanel {
         });
     }
 
-    public void updateTimers(int whiteSeconds, int blackSeconds) {
-        SwingUtilities.invokeLater(() -> {
-            // If you have GameManager.formatSecondsAsClock(...) you can use it.
-            // Otherwise use simple mm:ss formatting:
-            String whiteText = formatSecondsAsClock(whiteSeconds);
-            String blackText = formatSecondsAsClock(blackSeconds);
-            whiteTimerLabel.setText(whiteText);
-            blackTimerLabel.setText(blackText);
-        });
-    }
-
-    private String formatSecondsAsClock(int seconds) {
-        int s = Math.max(0, seconds);
-        int m = s / 60;
-        int sec = s % 60;
-        return String.format("%02d:%02d", m, sec);
-    }
 }

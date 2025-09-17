@@ -11,12 +11,11 @@ import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 
-public class ChessGUI implements GameStateObserver {
+public class ChessGUI implements GameStateObserver, GameController {
     private JFrame mainFrame;
     private BoardPanel boardPanel;
     private StatusPanel statusPanel;
     private GameManager gameManager;
-    private Timer swingClockTimer;
     
     public ChessGUI() {
         gameManager = new GameManager();
@@ -28,22 +27,6 @@ public class ChessGUI implements GameStateObserver {
         
         initializeComponents();
 
-            swingClockTimer = new Timer(1000, e -> {
-            if (gameManager.isClockEnabled()) {
-                boolean timeout = gameManager.tick(); // decrements active clock
-                // update the labels in StatusPanel
-                statusPanel.updateTimers(gameManager.getWhiteSecondsRemaining(), gameManager.getBlackSecondsRemaining());
-                if (timeout) {
-                    // stop timer when timeout occurs (gameManager.tick() should have updated game state)
-                    swingClockTimer.stop();
-                    // optionally show dialog - handled in onGameStateChanged observer too
-                }
-            } else {
-                // still update labels (shows --:--)
-                statusPanel.updateTimers(gameManager.getWhiteSecondsRemaining(), gameManager.getBlackSecondsRemaining());
-            }
-        });
-        swingClockTimer.start();
     }
     
     private void initializeComponents() {

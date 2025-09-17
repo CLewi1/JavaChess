@@ -1,6 +1,6 @@
 package com.clewi.javachess;
 
-import com.clewi.javachess.ui.ChessGUI;
+import com.clewi.javachess.ui.MainApplication;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
@@ -16,7 +16,7 @@ public class ChessGame {
         SwingUtilities.invokeLater(() -> {
             try {
                 System.out.println("Starting Chess Game...");
-                new ChessGUI();
+                new MainApplication();
             } catch (Exception e) {
                 System.err.println("Error starting game: " + e);
                 e.printStackTrace();
