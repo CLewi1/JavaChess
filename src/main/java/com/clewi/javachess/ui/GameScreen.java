@@ -145,6 +145,15 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         statusPanel.updateMoveHistory(gameManager.getDisplayMoveHistory());
 
         GameState state = event.getGameState();
+        
+        // Check if AI should make a move (only if game is still playing)
+        if (state == GameState.PLAYING || state == GameState.CHECK) {
+            if (gameManager.isAITurn()) {
+                // Schedule AI move on background thread to avoid blocking UI
+                SwingUtilities.invokeLater(() -> triggerAIMove());
+            }
+        }
+        
         if (state == GameState.CHECKMATE) {
             Player winner = event.getSource().getOppositePlayer();
             SwingUtilities.invokeLater(() -> showCheckmateDialog(winner));
@@ -172,6 +181,62 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         JOptionPane.showMessageDialog(this, "Stalemate! The game is a draw.", "Game Over", JOptionPane.INFORMATION_MESSAGE);
     }
     
+    /**
+     * Trigger an AI move using SwingWorker for background processing.
+     * This prevents UI freezing and provides user feedback while AI thinks.
+     */
+    private void triggerAIMove() {
+        if (!gameManager.isAITurn()) {
+            return; // Safety check
+        }
+        
+        DebugUtils.logImportant("Triggering AI move with background processing...");
+        
+        // Create SwingWorker for background AI processing
+        SwingWorker<Boolean, Void> aiWorker = new SwingWorker<Boolean, Void>() {
+            @Override
+            protected Boolean doInBackground() throws Exception {
+                // This runs in background thread
+                return gameManager.makeAIMove();
+            }
+            
+            @Override
+            protected void done() {
+                try {
+                    // This runs on EDT after background work completes
+                    boolean success = get();
+                    
+                    // Re-enable user input
+                    boardPanel.setEnabled(true);
+                    
+                    // Clear AI thinking message
+                    statusPanel.clearAIThinkingMessage();
+                    
+                    if (!success) {
+                        DebugUtils.logImportant("AI failed to make a move");
+                        statusPanel.addErrorMessage("AI failed to make a move");
+                    } else {
+                        DebugUtils.logImportant("AI move completed successfully");
+                    }
+                } catch (Exception e) {
+                    DebugUtils.logImportant("Error during AI move: " + e.getMessage());
+                    statusPanel.addErrorMessage("AI move error: " + e.getMessage());
+                    boardPanel.setEnabled(true);
+                    statusPanel.clearAIThinkingMessage();
+                }
+            }
+        };
+        
+        // Disable user input while AI thinks
+        boardPanel.setEnabled(false);
+        
+        // Show AI thinking message
+        statusPanel.showAIThinkingMessage();
+        
+        // Start the background AI work
+        aiWorker.execute();
+    }
+    
     public void startNewGame() {
         GameSettingsDialog settingsDialog = new GameSettingsDialog(this);
         settingsDialog.setVisible(true);
@@ -183,6 +248,14 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         
         timersEnabled = settingsDialog.isTimerEnabled();
         gameManager.resetGame();
+        
+        // Configure AI based on game mode
+        if ("PVAI".equals(gameMode)) {
+            gameManager.configureAI(true, true); // AI plays as black (second player)
+            DebugUtils.logImportant("AI enabled for PVAI mode");
+        } else {
+            gameManager.configureAI(false, false); // No AI for PVP mode
+        }
         
         // Configure clock based on user settings
         if (settingsDialog.isTimerEnabled()) {
