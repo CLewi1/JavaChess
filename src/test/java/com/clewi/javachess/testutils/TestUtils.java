@@ -5,6 +5,8 @@ import com.clewi.javachess.pieces.Pawn;
 import com.clewi.javachess.pieces.King;
 import com.clewi.javachess.pieces.Knight;
 import com.clewi.javachess.pieces.Queen;
+import com.clewi.javachess.pieces.Rook;
+import com.clewi.javachess.pieces.Bishop;
 
 /**
  * Lightweight helpers for constructing test board positions.
@@ -48,5 +50,21 @@ public final class TestUtils {
         board.setSquare(x, y, q);
         board.trackPiece(q);
         return q;
+    }
+
+    public static Rook placeRook(Board board, int x, int y, boolean isWhite) {
+        Rook r = new Rook(x, y, isWhite, "Rook.png", board, false);
+        r.setBoard(board);
+        board.setSquare(x, y, r);
+        board.trackPiece(r);
+        return r;
+    }
+
+    public static Bishop placeBishop(Board board, int x, int y, boolean isWhite) {
+        Bishop b = new Bishop(x, y, isWhite, "Bishop.png", board, false);
+        b.setBoard(board);
+        board.setSquare(x, y, b);
+        board.trackPiece(b);
+        return b;
     }
 }
