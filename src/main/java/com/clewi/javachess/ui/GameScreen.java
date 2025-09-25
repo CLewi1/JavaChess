@@ -121,6 +121,10 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         
         menuBar.add(gameMenu);
         menuBar.add(viewMenu);
+        
+        // Apply custom styling to menu bar
+        styleMenuBar(menuBar);
+        
         setJMenuBar(menuBar);
         
         boardPanel = new BoardPanel(gameManager);
@@ -591,5 +595,68 @@ public class GameScreen extends JFrame implements GameStateObserver, GameControl
         int m = s / 60;
         int sec = s % 60;
         return String.format("%02d:%02d", m, sec);
+    }
+    
+    private void styleMenuBar(JMenuBar menuBar) {
+        // Set dark background for menu bar
+        menuBar.setBackground(new Color(45, 45, 45));
+        menuBar.setOpaque(true);
+        
+        // Style each menu
+        for (int i = 0; i < menuBar.getMenuCount(); i++) {
+            JMenu menu = menuBar.getMenu(i);
+            styleMenu(menu);
+        }
+    }
+    
+    private void styleMenu(JMenu menu) {
+        // Set white text on dark background
+        menu.setForeground(Color.WHITE);
+        menu.setBackground(new Color(45, 45, 45));
+        menu.setOpaque(true);
+        
+        // Create custom UI for grey click background
+        menu.setUI(new javax.swing.plaf.basic.BasicMenuUI() {
+            @Override
+            protected void paintBackground(Graphics g, JMenuItem menuItem, Color bgColor) {
+                if (menuItem.isArmed() || menuItem.isSelected()) {
+                    // Grey background when clicked/hovered
+                    g.setColor(new Color(120, 120, 120));
+                } else {
+                    // Dark background normally
+                    g.setColor(new Color(45, 45, 45));
+                }
+                g.fillRect(0, 0, menuItem.getWidth(), menuItem.getHeight());
+            }
+        });
+        
+        // Style menu items
+        for (int i = 0; i < menu.getItemCount(); i++) {
+            JMenuItem item = menu.getItem(i);
+            if (item != null) { // Skip separators
+                item.setForeground(Color.WHITE);
+                item.setBackground(new Color(45, 45, 45));
+                item.setOpaque(true);
+                
+                // Custom UI for menu items with grey click background
+                item.setUI(new javax.swing.plaf.basic.BasicMenuItemUI() {
+                    @Override
+                    protected void paintBackground(Graphics g, JMenuItem menuItem, Color bgColor) {
+                        if (menuItem.isArmed() || menuItem.isSelected()) {
+                            // Grey background when clicked/hovered
+                            g.setColor(new Color(120, 120, 120));
+                        } else {
+                            // Dark background normally
+                            g.setColor(new Color(45, 45, 45));
+                        }
+                        g.fillRect(0, 0, menuItem.getWidth(), menuItem.getHeight());
+                    }
+                });
+            }
+        }
+        
+        // Style popup menu
+        menu.getPopupMenu().setBackground(new Color(45, 45, 45));
+        menu.getPopupMenu().setBorder(BorderFactory.createLineBorder(new Color(80, 80, 80)));
     }
 }
