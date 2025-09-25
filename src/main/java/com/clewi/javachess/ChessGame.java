@@ -7,6 +7,9 @@ import javax.swing.UIManager;
 public class ChessGame {
     public static void main(String[] args) {
         try {
+
+            System.setProperty("apple.awt.application.appearance", "NSAppearanceNameDarkAqua");
+
             // Set system look and feel
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
